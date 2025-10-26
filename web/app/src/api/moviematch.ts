@@ -11,11 +11,11 @@ import type {
 } from "../../../../types/moviematch";
 
 const API_URL = (() => {
-  if (import.meta.env.API_URI) {
-    return import.meta.env.API_URI;
+  if (import.meta.env.VITE_API_URI) {
+    return import.meta.env.VITE_API_URI;
   } else {
     const url = new URL(location.href);
-    url.pathname = document.body.dataset.rootPath + "/api/ws";
+    url.pathname = "/api/ws";
     url.protocol = url.protocol === "https:" ? "wss:" : "ws:";
     return url.href;
   }

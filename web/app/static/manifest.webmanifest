@@ -1,20 +1,21 @@
 {
   "name": "MovieMatch",
   "short_name": "MovieMatch",
+  "description": "Find movies you both like",
   "start_url": "/",
-  "display": "fullscreen",
-  "background_color": "#e64747",
-  "theme_color": "#e64747",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000",
   "orientation": "portrait",
   "icons": [
     {
-      "src": "./icons/icon-192.png",
+      "src": "/icons/icon-192.png",
       "type": "image/png",
       "sizes": "192x192",
       "purpose": "maskable any"
     },
     {
-      "src": "./icons/icon-512.png",
+      "src": "/icons/icon-512.png",
       "type": "image/png",
       "sizes": "512x512",
       "purpose": "maskable any"

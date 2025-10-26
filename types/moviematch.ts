@@ -26,6 +26,8 @@ export interface Config {
     certFile: string;
     keyFile: string;
   };
+  storageType?: "memory" | "file";
+  storagePath?: string;
 }
 
 export type Message = ServerMessage | ClientMessage;

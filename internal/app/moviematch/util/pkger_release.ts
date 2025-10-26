@@ -12,7 +12,7 @@ export const readFile = (path: string): Uint8Array => {
     throw new Error(`${path} not found`);
   }
 
-  return base64.toUint8Array(value);
+  return base64.decodeBase64(value);
 };
 
 export const readTextFile = (path: string): string => {

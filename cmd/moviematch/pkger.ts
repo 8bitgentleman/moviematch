@@ -38,7 +38,7 @@ const bundleFile = async (
     rawData = gzip(rawData);
   }
 
-  const data = base64.fromUint8Array(rawData);
+  const data = base64.encodeBase64(rawData);
 
   const path = fileName.replace(Deno.cwd(), "").replace(/\\/g, "/");
   return [path, data];

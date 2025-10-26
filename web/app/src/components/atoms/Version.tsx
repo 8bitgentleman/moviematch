@@ -6,7 +6,7 @@ export const Version = () => {
   const [index, setIndex] = useState<number>(0);
 
   const messages: ReactNode[] = [
-    <>Version {import.meta.env.VERSION}</>,
+    <>Version {import.meta.env.VITE_VERSION}</>,
     <>
       {`Made by `}
       <a
