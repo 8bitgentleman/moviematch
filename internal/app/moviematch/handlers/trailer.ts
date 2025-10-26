@@ -13,7 +13,7 @@ export const handler: RouteHandler = async (
   ctx: RouteContext,
 ) => {
   if (!ctx.params) {
-    log.warning(`trailer handler called without params`);
+    log.warn(`trailer handler called without params`);
     return {
       status: 400,
       body: "Missing parameters",
@@ -24,7 +24,7 @@ export const handler: RouteHandler = async (
   const provider = ctx.providers[+providerIndex];
 
   if (!provider) {
-    log.warning(`trailer handler called with an invalid provider index`);
+    log.warn(`trailer handler called with an invalid provider index`);
     return {
       status: 404,
       body: "Provider not found",
@@ -55,7 +55,7 @@ export const handler: RouteHandler = async (
     }
 
     if (!trailer.Media || trailer.Media.length === 0 || !trailer.Media[0].Part || trailer.Media[0].Part.length === 0) {
-      log.warning(`Trailer found but no media parts available for ${mediaId}`);
+      log.warn(`Trailer found but no media parts available for ${mediaId}`);
       return {
         status: 404,
         body: "Trailer media not available",
@@ -119,10 +119,10 @@ export const handler: RouteHandler = async (
       body: readerFromStreamReader(videoResponse.body.getReader()),
     };
   } catch (err) {
-    log.error(`Error fetching trailer: ${err.message}`);
+    log.error(`Error fetching trailer: ${err instanceof Error ? err.message : String(err)}`);
     return {
       status: 500,
-      body: `Internal server error: ${err.message}`,
+      body: `Internal server error: ${err instanceof Error ? err.message : String(err)}`,
     };
   }
 };

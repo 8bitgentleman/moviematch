@@ -36,13 +36,13 @@ export const handler: RouteHandler = async (
     try {
       user = await getUser({ clientId: plexClientId, plexToken });
     } catch (err) {
-      log.warning(`Failed to get Plex user: ${err.message}`);
+      log.warn(`Failed to get Plex user: ${err instanceof Error ? err.message : String(err)}`);
       return {
         status: 401,
         headers: new Headers({ "Content-Type": "application/json" }),
         body: JSON.stringify({
           error: "Invalid Plex credentials",
-          message: err.message,
+          message: err instanceof Error ? err.message : String(err),
         }),
       };
     }
@@ -52,13 +52,13 @@ export const handler: RouteHandler = async (
     try {
       plexUsers = await getPlexUsers({ clientId: plexClientId, plexToken });
     } catch (err) {
-      log.warning(`Failed to get Plex users: ${err.message}`);
+      log.warn(`Failed to get Plex users: ${err instanceof Error ? err.message : String(err)}`);
       return {
         status: 500,
         headers: new Headers({ "Content-Type": "application/json" }),
         body: JSON.stringify({
           error: "Failed to retrieve server access information",
-          message: err.message,
+          message: err instanceof Error ? err.message : String(err),
         }),
       };
     }
@@ -115,7 +115,7 @@ export const handler: RouteHandler = async (
           });
         }
       } catch (err) {
-        log.error(`Error checking access for provider ${i}: ${err.message}`);
+        log.error(`Error checking access for provider ${i}: ${err instanceof Error ? err.message : String(err)}`);
         // Continue checking other providers
       }
     }
@@ -145,13 +145,13 @@ export const handler: RouteHandler = async (
       }),
     };
   } catch (err) {
-    log.error(`Unexpected error in verify_user handler: ${err.message}`);
+    log.error(`Unexpected error in verify_user handler: ${err instanceof Error ? err.message : String(err)}`);
     return {
       status: 500,
       headers: new Headers({ "Content-Type": "application/json" }),
       body: JSON.stringify({
         error: "Internal server error",
-        message: err.message,
+        message: err instanceof Error ? err.message : String(err),
       }),
     };
   }

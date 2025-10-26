@@ -24,7 +24,7 @@ while (typeof exitCode === "undefined") {
   const [config, errors] = await loadConfig(CONFIG_PATH);
 
   if (errors.length === 1 && errors[0].name === "ServersMustNotBeEmpty") {
-    log.warning(
+    log.warn(
       "No default config file found. Starting up with defaults until configured.",
     );
   } else if (errors.length) {

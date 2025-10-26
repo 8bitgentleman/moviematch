@@ -168,12 +168,12 @@ export class FileStorage implements Storage {
             if (room.roomName && room.creatorPlexUserId && room.createdAt) {
               rooms.push(room);
             } else {
-              log.warning(
+              log.warn(
                 `Skipping invalid room file: ${entry.path} (missing required fields)`,
               );
             }
           } catch (error) {
-            log.warning(
+            log.warn(
               `Failed to parse room file: ${entry.path}`,
               error,
             );

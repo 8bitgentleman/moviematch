@@ -29,6 +29,7 @@ export async function loadConfig(
   try {
     if (await requestRead(".")) {
       const yamlConfigPath = path ?? joinPath(Deno.cwd(), "config.yaml");
+      configPath = yamlConfigPath;
 
       log.info(`Looking for config in ${yamlConfigPath}`);
       yamlConfig = yamlConfigPath !== "/dev/null"

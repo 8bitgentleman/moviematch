@@ -103,9 +103,9 @@ export const Application = (
     } catch (err) {
       log.critical(
         `Failed to start an HTTP server. ${
-          err.name === "NotFound" && config.tlsConfig
+          (err instanceof Error && err.name === "NotFound") && config.tlsConfig
             ? `Please check that your TLS_CERT and TLS_FILE values are correct.`
-            : err.message
+            : err instanceof Error ? err.message : String(err)
         }`,
       );
     }

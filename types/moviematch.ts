@@ -10,7 +10,7 @@ export interface BasicAuth {
 export interface Config {
   hostname: string;
   port: number;
-  logLevel: "DEBUG" | "INFO" | "WARNING" | "ERROR" | "CRITICAL";
+  logLevel: "DEBUG" | "INFO" | "WARN" | "ERROR" | "CRITICAL";
   rootPath: string;
   servers: Array<{
     type?: "plex";
@@ -185,7 +185,8 @@ export interface CreateRoomError {
     | "UnauthorizedError"
     | "NotLoggedInError"
     | "NoMedia"
-    | "PlexAuthRequiredError";
+    | "PlexAuthRequiredError"
+    | "UnknownError";
   message: string;
 }
 

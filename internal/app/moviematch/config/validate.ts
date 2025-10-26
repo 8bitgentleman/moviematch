@@ -105,7 +105,7 @@ export const validateConfig = (
             try {
               new URL(server.url);
             } catch (err) {
-              errors.push(new ServerUrlInvalid(err.message));
+              errors.push(new ServerUrlInvalid(err instanceof Error ? err.message : String(err)));
             }
 
             addRedaction(server.url);
@@ -181,7 +181,11 @@ export const validateConfig = (
             }
           }
         } catch (err) {
-          errors.push(err);
+          if (err instanceof MovieMatchError) {
+            errors.push(err);
+          } else {
+            errors.push(new MovieMatchError(err instanceof Error ? err.message : String(err)));
+          }
         }
       }
     }
@@ -211,7 +215,11 @@ export const validateConfig = (
           );
         }
       } catch (err) {
-        errors.push(err);
+        if (err instanceof MovieMatchError) {
+          errors.push(err);
+        } else {
+          errors.push(new MovieMatchError(err instanceof Error ? err.message : String(err)));
+        }
       }
     }
 
@@ -223,7 +231,11 @@ export const validateConfig = (
           RequirePlexTvLoginInvalid,
         );
       } catch (err) {
-        errors.push(err);
+        if (err instanceof MovieMatchError) {
+          errors.push(err);
+        } else {
+          errors.push(new MovieMatchError(err instanceof Error ? err.message : String(err)));
+        }
       }
     }
 
@@ -237,11 +249,19 @@ export const validateConfig = (
           errors.push(new TlsConfigKeyFileInvalid());
         }
       } catch (err) {
-        errors.push(err);
+        if (err instanceof MovieMatchError) {
+          errors.push(err);
+        } else {
+          errors.push(new MovieMatchError(err instanceof Error ? err.message : String(err)));
+        }
       }
     }
   } catch (err) {
-    errors.push(err);
+    if (err instanceof MovieMatchError) {
+      errors.push(err);
+    } else {
+      errors.push(new MovieMatchError(err instanceof Error ? err.message : String(err)));
+    }
   }
 
   return errors;

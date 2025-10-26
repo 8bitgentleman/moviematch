@@ -287,7 +287,7 @@ export class PlexApi {
       );
       return result.Metadata || [];
     } catch (err) {
-      log.warning(`Failed to fetch extras for ${mediaId}: ${err.message}`);
+      log.warn(`Failed to fetch extras for ${mediaId}: ${err instanceof Error ? err.message : String(err)}`);
       return [];
     }
   }

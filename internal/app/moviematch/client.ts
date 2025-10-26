@@ -289,11 +289,13 @@ export class Client {
         },
       });
     } catch (err) {
+      const errorName = err instanceof Error ? err.name : "UnknownError";
+      const allowedErrors = ["RoomExistsError", "UnauthorizedError", "NotLoggedInError", "NoMedia", "PlexAuthRequiredError", "UnknownError"];
       this.sendMessage({
         type: "createRoomError",
         payload: {
-          name: err.name,
-          message: err.message,
+          name: allowedErrors.includes(errorName) ? errorName as any : "UnknownError",
+          message: err instanceof Error ? err.message : String(err),
         },
       });
 
@@ -357,7 +359,7 @@ export class Client {
         type: "joinRoomError",
         payload: {
           name: error,
-          message: err.message,
+          message: err instanceof Error ? err.message : String(err),
         },
       });
     }
@@ -504,7 +506,7 @@ export class Client {
     try {
       await this.ws.send(JSON.stringify(msg));
     } catch (_err) {
-      log.warning(`Tried to send message to a disconnected client`);
+      log.warn(`Tried to send message to a disconnected client`);
     }
   }
 }

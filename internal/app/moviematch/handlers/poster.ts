@@ -12,14 +12,14 @@ export const handler: RouteHandler = async (
   ctx: RouteContext,
 ) => {
   if (!ctx.params) {
-    log.warning(`poster handler called without params`);
+    log.warn(`poster handler called without params`);
     return;
   }
   const { providerIndex, key } = ctx.params as unknown as PosterParams;
   const provider = ctx.providers[+providerIndex];
 
   if (!provider) {
-    log.warning(`poster handler called with an invalid provider index`);
+    log.warn(`poster handler called with an invalid provider index`);
     return;
   }
 
@@ -37,6 +37,6 @@ export const handler: RouteHandler = async (
       body: readerFromStreamReader(readableStream.getReader()),
     };
   } catch (err) {
-    log.error(err.message);
+    log.error(err instanceof Error ? err.message : String(err));
   }
 };

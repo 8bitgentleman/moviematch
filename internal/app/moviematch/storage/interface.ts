@@ -132,9 +132,9 @@ export interface Storage {
  * Error thrown by storage implementations.
  */
 export class StorageError extends Error {
-  name = "StorageError";
+  override name = "StorageError";
 
-  constructor(message: string, public cause?: Error) {
+  constructor(message: string, public override cause?: Error) {
     super(message);
   }
 }

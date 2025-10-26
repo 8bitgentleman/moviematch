@@ -25,19 +25,19 @@ import type { Storage } from "/internal/app/moviematch/storage/interface.ts";
 import { createMatchStrategy, type MatchStrategy } from "/internal/app/moviematch/strategies/index.ts";
 
 export class RoomExistsError extends Error {
-  name = "RoomExistsError";
+  override name = "RoomExistsError";
 }
 export class AccessDeniedError extends Error {
-  name = "AccessDeniedError";
+  override name = "AccessDeniedError";
 }
 export class RoomNotFoundError extends Error {
-  name = "RoomNotFoundError";
+  override name = "RoomNotFoundError";
 }
 export class UserAlreadyJoinedError extends Error {
-  name = "UserAlreadyJoinedError";
+  override name = "UserAlreadyJoinedError";
 }
 export class NoMediaError extends Error {
-  name = "NoMediaError";
+  override name = "NoMediaError";
 }
 
 export class Room {
@@ -146,7 +146,7 @@ export class Room {
       );
 
       if (existingRatingByUser) {
-        log.warning(`${userName} has already rated ${rating.mediaId}.`);
+        log.warn(`${userName} has already rated ${rating.mediaId}.`);
         return;
       }
 
@@ -293,8 +293,8 @@ export class Room {
   /**
    * Helper: Convert ratings Map to plain object for serialization
    */
-  private ratingsToObject(): Record<string, Array<[string, string, number]>> {
-    const result: Record<string, Array<[string, string, number]>> = {};
+  private ratingsToObject(): Record<string, Array<[userName: string, rating: "like" | "dislike", timestamp: number]>> {
+    const result: Record<string, Array<[userName: string, rating: "like" | "dislike", timestamp: number]>> = {};
     for (const [mediaId, ratings] of this.ratings.entries()) {
       result[mediaId] = ratings;
     }
