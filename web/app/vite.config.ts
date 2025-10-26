@@ -21,10 +21,10 @@ const apiWsUri = VERSION === 'dev'
 export default defineConfig({
   plugins: [
     react({
-      // Use automatic JSX runtime for React 17
+      // Use automatic JSX runtime for React 18
       jsxRuntime: 'automatic',
-      // Disable fast refresh since we're using React 17
-      fastRefresh: false,
+      // Enable fast refresh for React 18
+      fastRefresh: true,
     }),
     VitePWA({
       registerType: 'autoUpdate',

@@ -247,6 +247,17 @@ export class Client {
 
     const userName = this.getUsername();
 
+    // Require Plex authentication for room creation
+    if (!this.plexUser) {
+      return this.sendMessage({
+        type: "createRoomError",
+        payload: {
+          name: "PlexAuthRequiredError",
+          message: "You must be logged in with Plex to create a room. Only Plex users with access to the server can create rooms.",
+        },
+      });
+    }
+
     if (!userName) {
       return this.sendMessage({
         type: "createRoomError",
@@ -258,7 +269,13 @@ export class Client {
     }
 
     try {
-      this.room = await createRoom(createRoomReq, this.ctx);
+      // Pass creator information to createRoom
+      const creatorInfo = {
+        plexUserId: this.plexUser.id,
+        plexUsername: this.plexUser.username,
+      };
+
+      this.room = await createRoom(createRoomReq, this.ctx, creatorInfo);
       this.room.users.set(userName, this);
       this.sendMessage({
         type: "createRoomSuccess",
