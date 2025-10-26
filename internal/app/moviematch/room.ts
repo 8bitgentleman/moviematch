@@ -1,14 +1,19 @@
 import { log } from "/deps.ts";
 import {
   ClientMessage,
+  ContentRatingFilter,
   CreateRoomRequest,
   Filter,
+  GenreFilterMode,
   JoinRoomRequest,
   Match,
   Media,
   Rate,
+  RatingFilter,
   RoomOption,
   RoomSort,
+  RoomType,
+  SortOrder,
   User,
   UserProgress,
 } from "/types/moviematch.ts";
@@ -17,6 +22,7 @@ import { Client } from "/internal/app/moviematch/client.ts";
 import type { RouteContext } from "./types.ts";
 import { createStorageFromEnv } from "/internal/app/moviematch/storage/index.ts";
 import type { Storage } from "/internal/app/moviematch/storage/interface.ts";
+import { createMatchStrategy, type MatchStrategy } from "/internal/app/moviematch/strategies/index.ts";
 
 export class RoomExistsError extends Error {
   name = "RoomExistsError";
@@ -43,6 +49,16 @@ export class Room {
   options?: RoomOption[];
   sort: RoomSort;
 
+  // Phase 2.2: Room type and matching strategy
+  roomType: RoomType;
+  private matchStrategy: MatchStrategy;
+
+  // Phase 2.3 enhanced filters
+  sortOrder: SortOrder;
+  genreFilterMode?: GenreFilterMode;
+  ratingFilter?: RatingFilter;
+  contentRatingFilter?: ContentRatingFilter;
+
   // Creator information for room ownership
   creatorPlexUserId: string;
   creatorPlexUsername: string;
@@ -67,6 +83,16 @@ export class Room {
     this.filters = req.filters;
     this.sort = req.sort ?? "random";
 
+    // Phase 2.2: Initialize room type and matching strategy
+    this.roomType = req.roomType ?? "standard"; // Default to standard for backward compatibility
+    this.matchStrategy = createMatchStrategy(this.roomType);
+
+    // Phase 2.3 enhanced filters with defaults
+    this.sortOrder = req.sortOrder ?? "random";
+    this.genreFilterMode = req.genreFilterMode;
+    this.ratingFilter = req.ratingFilter;
+    this.contentRatingFilter = req.contentRatingFilter;
+
     // Store creator information
     this.creatorPlexUserId = creatorInfo.plexUserId;
     this.creatorPlexUsername = creatorInfo.plexUsername;
@@ -79,7 +105,13 @@ export class Room {
     const media: Media[] = [];
 
     for (const provider of this.RouteContext.providers) {
-      media.push(...await provider.getMedia({ filters: this.filters }));
+      media.push(...await provider.getMedia({
+        filters: this.filters,
+        sortOrder: this.sortOrder,
+        genreFilterMode: this.genreFilterMode,
+        ratingFilter: this.ratingFilter,
+        contentRatingFilter: this.contentRatingFilter,
+      }));
     }
 
     if (media.length === 0) {
@@ -88,7 +120,8 @@ export class Room {
       );
     }
 
-    media.sort(() => 0.5 - Math.random());
+    // Note: Sorting is now handled by the provider based on sortOrder
+    // No longer applying random sort here
 
     return new Map<string, Media>(
       media.map((media) => ([media.id, media])),
@@ -106,6 +139,7 @@ export class Room {
   storeRating = async (userName: string, rating: Rate, matchedAt: number) => {
     const existingRatings = this.ratings.get(rating.mediaId);
     const progress = (this.userProgress.get(userName) ?? 0) + 1;
+
     if (existingRatings) {
       const existingRatingByUser = existingRatings.find(([_userName]) =>
         _userName === userName
@@ -116,20 +150,25 @@ export class Room {
         return;
       }
 
-      existingRatings.push([userName, rating.rating, matchedAt]]);
-      const likes = existingRatings.filter(([, rating]) => rating === "like");
-      if (likes.length > 1) {
-        const media = (await this.media).get(rating.mediaId);
-        if (media) {
-          this.notifyMatch({
-            matchedAt,
-            media,
-            users: likes.map(([userName]) => userName),
-          });
-        }
-      }
+      existingRatings.push([userName, rating.rating, matchedAt]);
     } else {
       this.ratings.set(rating.mediaId, [[userName, rating.rating, matchedAt]]);
+    }
+
+    // Phase 2.2: Use strategy pattern for match detection
+    const activeUsers = new Set(this.users.keys());
+    const mediaMap = await this.media;
+    const match = this.matchStrategy.checkForMatch(
+      this.ratings,
+      activeUsers,
+      rating.mediaId,
+      mediaMap,
+      userName
+    );
+
+    // If we have a match, notify users based on strategy
+    if (match && this.matchStrategy.shouldNotifyUsers(match)) {
+      this.notifyMatch(match);
     }
 
     this.userProgress.set(userName, progress);
@@ -157,6 +196,7 @@ export class Room {
     allLikes: boolean,
   ): Promise<Match[]> => {
     const matches: Match[] = [];
+    const mediaMap = await this.media;
 
     for (const [mediaId, rating] of this.ratings.entries()) {
       const likes = rating.filter(([, rating]) => rating === "like");
@@ -164,11 +204,28 @@ export class Room {
         (lastTime, [, , time]) => (time > lastTime ? time : lastTime),
         0,
       );
-      if (
-        likes.length > 1 &&
-        (allLikes || !!likes.find(([_userName]) => userName === _userName))
-      ) {
-        const media = (await this.media).get(mediaId);
+
+      // Phase 2.2: Handle different strategy types
+      let isMatch = false;
+
+      if (this.roomType === "solo") {
+        // In solo mode, only show matches for this specific user
+        isMatch = likes.some(([_userName]) => _userName === userName);
+      } else if (this.roomType === "unanimous") {
+        // In unanimous mode, all users must have liked
+        const activeUsers = new Set(this.users.keys());
+        const usersWhoLiked = new Set(likes.map(([userName]) => userName));
+        isMatch = activeUsers.size > 0 &&
+                  [...activeUsers].every(u => usersWhoLiked.has(u)) &&
+                  (allLikes || usersWhoLiked.has(userName));
+      } else {
+        // Standard and async modes: 2+ likes required
+        isMatch = likes.length >= 2 &&
+                  (allLikes || !!likes.find(([_userName]) => userName === _userName));
+      }
+
+      if (isMatch) {
+        const media = mediaMap.get(mediaId);
         if (media) {
           matches.push({
             matchedAt,
@@ -266,6 +323,13 @@ export class Room {
       options: this.options,
       filters: this.filters,
       sort: this.sort,
+      // Phase 2.2: Room type
+      roomType: this.roomType,
+      // Phase 2.3 enhanced filters
+      sortOrder: this.sortOrder,
+      genreFilterMode: this.genreFilterMode,
+      ratingFilter: this.ratingFilter,
+      contentRatingFilter: this.contentRatingFilter,
       createdAt: this.createdAt.toISOString(),
       creatorPlexUserId: this.creatorPlexUserId,
       creatorPlexUsername: this.creatorPlexUsername,

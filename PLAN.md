@@ -276,13 +276,6 @@ export interface SerializedRoom {
   - Integrate with existing filter system
   - Support per-user watched status (requires Plex auth)
 
-- [ ] Add watchlist support (Plex authentication required)
-  - Implement `getPlaylists()` for watchlist fetching
-  - Implement `addToPlaylist()` for adding items to Plex watchlist
-  - Verify user authentication before allowing watchlist operations
-  - Handle watchlist mutations
-  - Return success/error states to UI
-
 - [ ] Enhanced metadata
   - Return `Director`, `Writer`, `Role` in media objects
   - Add `Collection` information
@@ -516,7 +509,7 @@ getMedia: async ({ filters, sortOrder }) => {
 
 ## Phase 3: UI Redesign (3 weeks)
 
-**Goal:** Implement modern Tinder-style interface based on design mockup
+**Goal:** Implement modern Tinder-style interface based on design mockup `/Users/mtvogel/Documents/Github-Repos/moviematch/UI_idea.png`
 
 ### 3.1 Design System & Components (4-5 days)
 
@@ -663,21 +656,21 @@ export const ActionButton: FC<ActionButtonProps> = ({
 #### Layout Structure
 ```
 ┌─────────────────────────┐
-│ ○ ○ ○ ○                │ Progress indicators
+│ ─────── ─────── ─────── │ Carousel progress indicators
 ├─────────────────────────┤
 │                         │
 │                         │
 │     MOVIE POSTER        │ Full-screen card
 │      (swipeable)        │
-│                         │
+│ tap to progress carousel|        
 │                         │
 ├─────────────────────────┤
-│ Title         Length  ⓘ│ Movie info
+│ Title - Length        ⓘ│ Movie info
 │ [Genre] [Genre]         │ Genre tags
 ├─────────────────────────┤
-│   ↻     ✕   🔖   ♥    │ 4 Action buttons
+│   ↻     ✕   🔖   ♥       │ 4 Action buttons
 ├─────────────────────────┤
-│   ▶   ⊞   ★   👤      │ Bottom navigation
+│   ▶   ⊞   ★   👤        │ Bottom navigation
 └─────────────────────────┘
 ```
 

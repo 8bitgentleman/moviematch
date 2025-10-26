@@ -7,6 +7,8 @@ import { handler as apiHandler } from "/internal/app/moviematch/handlers/api.ts"
 import { handler as basicAuthHandler } from "/internal/app/moviematch/handlers/basic_auth.ts";
 import { handler as posterHandler } from "/internal/app/moviematch/handlers/poster.ts";
 import { handler as linkHandler } from "/internal/app/moviematch/handlers/link.ts";
+import { handler as trailerHandler } from "/internal/app/moviematch/handlers/trailer.ts";
+import { handler as verifyUserHandler } from "/internal/app/moviematch/handlers/verify_user.ts";
 import { urlFromReqUrl } from "/internal/app/moviematch/util/url.ts";
 
 import { createProvider as createPlexProvider } from "/internal/app/moviematch/providers/plex.ts";
@@ -20,6 +22,7 @@ const routes: Array<readonly [RegExp | string, RouteHandler[]]> = [
   ["/", [basicAuthHandler, rootHandler]],
   ["/health", [healthHandler]],
   ["/api/ws", [apiHandler]],
+  ["/api/verify-user", [verifyUserHandler]],
   [
     /^\/api\/poster\/(?<providerIndex>[0-9]+)\/(?<key>[0-9/]+)$/,
     [basicAuthHandler, posterHandler],
@@ -27,6 +30,10 @@ const routes: Array<readonly [RegExp | string, RouteHandler[]]> = [
   [
     /^\/api\/link\/(?<providerIndex>[0-9]+)\/(?<key>[0-9a-z/]+)$/i,
     [basicAuthHandler, linkHandler],
+  ],
+  [
+    /^\/api\/trailer\/(?<providerIndex>[0-9]+)\/(?<mediaId>[0-9a-z]+)$/i,
+    [basicAuthHandler, trailerHandler],
   ],
   ["/manifest.webmanifest", [serveStaticHandler]],
   [/.*/, [basicAuthHandler, serveStaticHandler]],

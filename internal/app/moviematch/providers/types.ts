@@ -9,11 +9,15 @@
  */
 
 import {
+  ContentRatingFilter,
   Filter,
   Filters,
   FilterValue,
+  GenreFilterMode,
   Library,
   Media,
+  RatingFilter,
+  SortOrder,
 } from "/types/moviematch.ts";
 
 export type MovieMatchProviderCtor = <T>(
@@ -52,5 +56,9 @@ export interface MovieMatchProvider {
 
   getMedia(options: {
     filters?: Filter[];
+    sortOrder?: SortOrder;
+    genreFilterMode?: GenreFilterMode;
+    ratingFilter?: RatingFilter;
+    contentRatingFilter?: ContentRatingFilter;
   }): Promise<Media[]>;
 }

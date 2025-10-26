@@ -1,9 +1,13 @@
 import {
+  ContentRatingFilter,
   Filter,
   Filters,
+  GenreFilterMode,
   Library,
   LibraryType,
   Media,
+  RatingFilter,
+  SortOrder,
 } from "/types/moviematch.ts";
 import { PlexApi, PlexDeepLinkOptions } from "/internal/app/plex/api.ts";
 import {
@@ -33,12 +37,130 @@ export const filtersToPlexQueryString = (
         continue;
       }
 
+      // Phase 2.1: Handle watched status filter
+      // Special handling for 'watched' filter - maps to viewCount parameter
+      if (filter.key === "watched") {
+        // If value is ["true"], filter to watched items (viewCount > 0)
+        // If value is ["false"], filter to unwatched items (viewCount = 0)
+        if (filter.value.includes("true")) {
+          queryString["viewCount>>"] = "0"; // Greater than 0
+        } else if (filter.value.includes("false")) {
+          queryString["viewCount"] = "0"; // Equals 0
+        }
+        continue;
+      }
+
       const [key, value] = filterToQueryString(filter);
       queryString[key] = value;
     }
   }
 
   return queryString;
+};
+
+/**
+ * Helper function to shuffle an array (Fisher-Yates algorithm)
+ */
+const shuffleArray = <T>(array: T[]): T[] => {
+  const result = [...array];
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [result[i], result[j]] = [result[j], result[i]];
+  }
+  return result;
+};
+
+/**
+ * Apply sort order to media array
+ */
+const applySortOrder = (media: Media[], sortOrder: SortOrder): Media[] => {
+  switch (sortOrder) {
+    case "newest":
+      return [...media].sort((a, b) => (b.year || 0) - (a.year || 0));
+    case "oldest":
+      return [...media].sort((a, b) => (a.year || 0) - (b.year || 0));
+    case "random":
+    default:
+      return shuffleArray(media);
+  }
+};
+
+/**
+ * Apply genre filtering with AND/OR logic
+ */
+const applyGenreFilter = (
+  media: Media[],
+  filters: Filter[] | undefined,
+  genreFilterMode: GenreFilterMode | undefined,
+): Media[] => {
+  if (!filters) return media;
+
+  // Find genre filters
+  const genreFilters = filters.filter((f) => f.key === "genre");
+  if (genreFilters.length === 0) return media;
+
+  // Collect all genre values from filters
+  const selectedGenres = genreFilters.flatMap((f) => f.value);
+  if (selectedGenres.length === 0) return media;
+
+  const mode = genreFilterMode || "or"; // Default to OR
+
+  return media.filter((item) => {
+    if (mode === "and") {
+      // AND: Media must have ALL selected genres
+      return selectedGenres.every((genre) =>
+        item.genres.some((g) => g.toLowerCase() === genre.toLowerCase())
+      );
+    } else {
+      // OR: Media must have AT LEAST ONE selected genre
+      return selectedGenres.some((genre) =>
+        item.genres.some((g) => g.toLowerCase() === genre.toLowerCase())
+      );
+    }
+  });
+};
+
+/**
+ * Apply rating filters
+ */
+const applyRatingFilter = (
+  media: Media[],
+  ratingFilter: RatingFilter | undefined,
+): Media[] => {
+  if (!ratingFilter) return media;
+
+  return media.filter((item) => {
+    const rating = item.rating;
+
+    // Check min rating
+    if (ratingFilter.min !== undefined && rating < ratingFilter.min) {
+      return false;
+    }
+
+    // Check max rating
+    if (ratingFilter.max !== undefined && rating > ratingFilter.max) {
+      return false;
+    }
+
+    return true;
+  });
+};
+
+/**
+ * Apply content rating filters
+ */
+const applyContentRatingFilter = (
+  media: Media[],
+  contentRatingFilter: ContentRatingFilter | undefined,
+): Media[] => {
+  if (!contentRatingFilter || contentRatingFilter.ratings.length === 0) {
+    return media;
+  }
+
+  return media.filter((item) => {
+    if (!item.contentRating) return false;
+    return contentRatingFilter.ratings.includes(item.contentRating);
+  });
 };
 
 export const createProvider = (
@@ -177,14 +299,20 @@ export const createProvider = (
 
       return api.getDeepLink(key, { type: linkType });
     },
-    getMedia: async ({ filters }) => {
+    getMedia: async ({
+      filters,
+      sortOrder = "random",
+      genreFilterMode,
+      ratingFilter,
+      contentRatingFilter,
+    }) => {
       const filterParams: Record<string, string> = filtersToPlexQueryString(
         filters,
       );
 
       const libraries: Library[] = await getLibraries();
 
-      const media: Media[] = [];
+      let media: Media[] = [];
 
       for (const library of libraries) {
         const libraryItems = await api.getLibraryItems(
@@ -213,10 +341,25 @@ export const createProvider = (
               duration: Number(libraryItem.duration),
               rating: Number(libraryItem.rating),
               contentRating: libraryItem.contentRating,
+              // Phase 2.1: Enhanced metadata
+              directors: libraryItem.Director?.map((_) => _.tag) ?? [],
+              writers: libraryItem.Writer?.map((_) => _.tag) ?? [],
+              actors: libraryItem.Role?.map((_) => _.tag) ?? [],
+              collections: libraryItem.Collection?.map((_) => _.tag) ?? [],
+              lastViewedAt: libraryItem.lastViewedAt,
+              viewCount: libraryItem.viewCount,
             });
           }
         }
       }
+
+      // Apply Phase 2.3 enhanced filters
+      media = applyGenreFilter(media, filters, genreFilterMode);
+      media = applyRatingFilter(media, ratingFilter);
+      media = applyContentRatingFilter(media, contentRatingFilter);
+
+      // Apply sorting
+      media = applySortOrder(media, sortOrder);
 
       return media;
     },

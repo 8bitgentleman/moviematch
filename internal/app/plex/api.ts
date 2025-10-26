@@ -9,6 +9,7 @@ import { Identity } from "/internal/app/plex/types/identity.ts";
 import { PlexMediaContainer } from "/internal/app/plex/types/common.ts";
 import { Libraries, Library } from "/internal/app/plex/types/libraries_list.ts";
 import { LibraryItems, Meta } from "/internal/app/plex/types/library_items.ts";
+import type { Extra, ExtrasResponse } from "/internal/app/plex/types/extras.ts";
 
 export interface PlexApiOptions {
   language?: string;
@@ -277,6 +278,24 @@ export class PlexApi {
     return `https://app.plex.tv/desktop#!/server/${serverId}/details?key=${
       encodeURIComponent(key)
     }`;
+  }
+
+  async getExtras(mediaId: string): Promise<Extra[]> {
+    try {
+      const result = await this.fetch<ExtrasResponse>(
+        `/library/metadata/${mediaId}/extras`,
+      );
+      return result.Metadata || [];
+    } catch (err) {
+      log.warning(`Failed to fetch extras for ${mediaId}: ${err.message}`);
+      return [];
+    }
+  }
+
+  async getTrailer(mediaId: string): Promise<Extra | null> {
+    const extras = await this.getExtras(mediaId);
+    // extraType 1 = trailer
+    return extras.find((e) => e.extraType === 1) || null;
   }
 }
 

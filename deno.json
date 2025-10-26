@@ -1,0 +1,15 @@
+{
+  "importMap": "./configs/import_map.json",
+  "unstable": [],
+  "tasks": {
+    "check": "deno check --allow-import cmd/moviematch/main.ts",
+    "test": "deno test --allow-import internal",
+    "start": "deno run --allow-all cmd/moviematch/main.ts"
+  },
+  "lint": {
+    "exclude": ["build", "web/app/node_modules", "web/app/build"]
+  },
+  "fmt": {
+    "exclude": ["build", "web/app/node_modules", "web/app/build"]
+  }
+}

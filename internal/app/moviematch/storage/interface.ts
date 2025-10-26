@@ -5,7 +5,16 @@
  * (memory, file system, Redis, etc.) without changing the Room class.
  */
 
-import { Filter, RoomOption, RoomSort } from "/types/moviematch.ts";
+import {
+  ContentRatingFilter,
+  Filter,
+  GenreFilterMode,
+  RatingFilter,
+  RoomOption,
+  RoomSort,
+  RoomType,
+  SortOrder,
+} from "/types/moviematch.ts";
 
 /**
  * Serializable room data that can be persisted to storage.
@@ -29,6 +38,21 @@ export interface SerializedRoom {
 
   /** Sort order for media presentation */
   sort: RoomSort;
+
+  /** Phase 2.2: Room type (matching strategy) */
+  roomType?: RoomType;
+
+  /** Phase 2.3: Enhanced sort order (newest, oldest, random) */
+  sortOrder?: SortOrder;
+
+  /** Phase 2.3: Genre filter mode (and/or logic) */
+  genreFilterMode?: GenreFilterMode;
+
+  /** Phase 2.3: Rating filter (min/max, type) */
+  ratingFilter?: RatingFilter;
+
+  /** Phase 2.3: Content rating filter (G, PG, PG-13, R, etc.) */
+  contentRatingFilter?: ContentRatingFilter;
 
   /** Timestamp when the room was created (ISO 8601 format) */
   createdAt: string;

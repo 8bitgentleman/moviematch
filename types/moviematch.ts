@@ -148,12 +148,35 @@ export interface Filter {
 
 export type RoomSort = "random" | "rating";
 
+export type RoomType = "standard" | "unanimous" | "solo" | "async";
+
+// Enhanced filter types for Phase 2.3
+export type SortOrder = "newest" | "oldest" | "random";
+
+export type GenreFilterMode = "and" | "or";
+
+export interface RatingFilter {
+  min?: number; // 0-10 scale
+  max?: number; // 0-10 scale
+  type?: "critic" | "audience"; // Critic rating vs audience rating
+}
+
+export interface ContentRatingFilter {
+  ratings: string[]; // e.g., ["G", "PG", "PG-13", "R"]
+}
+
 export interface CreateRoomRequest {
   roomName: string;
   password?: string;
   options?: RoomOption[];
   filters?: Filter[];
   sort?: RoomSort;
+  roomType?: RoomType; // Phase 2.2: Match strategy type
+  // Phase 2.3 enhancements
+  sortOrder?: SortOrder;
+  genreFilterMode?: GenreFilterMode; // For when filters include genre
+  ratingFilter?: RatingFilter;
+  contentRatingFilter?: ContentRatingFilter;
 }
 
 export interface CreateRoomError {
@@ -161,7 +184,8 @@ export interface CreateRoomError {
     | "RoomExistsError"
     | "UnauthorizedError"
     | "NotLoggedInError"
-    | "NoMedia";
+    | "NoMedia"
+    | "PlexAuthRequiredError";
   message: string;
 }
 
@@ -215,6 +239,13 @@ export interface Media {
   duration: number;
   rating: number;
   contentRating?: string;
+  // Phase 2.1: Enhanced metadata
+  directors?: string[];
+  writers?: string[];
+  actors?: string[];
+  collections?: string[];
+  lastViewedAt?: number;
+  viewCount?: number;
 }
 
 export interface Match {

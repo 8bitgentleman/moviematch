@@ -44,14 +44,23 @@ while (typeof exitCode === "undefined") {
 
   const abortController = new AbortController();
 
+  // Modern signal handling for Deno 2.x
   try {
-    Deno.signal(Deno.Signal.SIGINT).then(() => abortController.abort());
-  } catch (err) {
+    // Deno 2.x: Use Deno.addSignalListener
     if (Deno.build.os !== "windows") {
-      log.error(
-        `${err.message}: Unable to listen for SIGINT. There might be problems stopping MovieMatch.`,
-      );
+      Deno.addSignalListener("SIGINT", () => {
+        log.info("Received SIGINT signal, shutting down gracefully...");
+        abortController.abort();
+      });
+    } else {
+      // Windows doesn't support POSIX signals
+      // The process will terminate normally on Ctrl+C
+      log.debug("Windows detected: Using default signal handling");
     }
+  } catch (err) {
+    log.error(
+      `Unable to setup signal handlers: ${err instanceof Error ? err.message : String(err)}. There might be problems stopping MovieMatch gracefully.`,
+    );
   }
 
   try {
