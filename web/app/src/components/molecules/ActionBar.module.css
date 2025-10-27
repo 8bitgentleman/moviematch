@@ -1,0 +1,15 @@
+.actionBar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  padding: 24px 16px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+  .actionBar {
+    gap: 16px;
+    padding: 16px 8px;
+  }
+}

@@ -13,6 +13,8 @@ import type {
   User,
 } from "../../../../types/moviematch";
 
+export type TabType = "swipe" | "browse" | "matches" | "settings";
+
 export type ClientActions =
   | { type: "addToast"; payload: Toast }
   | { type: "removeToast"; payload: Toast }
@@ -21,6 +23,10 @@ export type ClientActions =
     payload: { route: Routes; routeParams?: Record<string, string> };
   }
   | { type: "plexLogin" }
+  | { type: "setActiveTab"; payload: TabType }
+  | { type: "toggleBookmark"; payload: string } // mediaId
+  | { type: "addToUndoStack"; payload: { mediaId: string; action: "like" | "dislike" } }
+  | { type: "undoLastSwipe" }
   | ServerMessage;
 
 export type Actions =
@@ -57,5 +63,10 @@ export interface Store {
     media?: Media[];
     matches?: Match[];
     users?: Array<{ user: User; progress: number }>;
+    // Phase 3: Enhanced room state
+    activeTab?: TabType;
+    bookmarkedMedia?: string[]; // Array of media IDs
+    undoStack?: Array<{ mediaId: string; action: "like" | "dislike" }>; // For undo functionality
+    createdAt?: number; // Room creation timestamp
   };
 }

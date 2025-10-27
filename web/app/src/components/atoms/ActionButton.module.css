@@ -1,0 +1,84 @@
+.actionButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.5);
+  border-width: 2px;
+  border-style: solid;
+  cursor: pointer;
+  transition: transform 200ms cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.actionButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.actionButton:not(:disabled):active {
+  transform: scale(0.9);
+}
+
+.actionButton:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.5);
+  outline-offset: 2px;
+}
+
+/* Sizes */
+.sm {
+  width: 48px;
+  height: 48px;
+}
+
+.sm .icon {
+  font-size: 20px;
+}
+
+.md {
+  width: 64px;
+  height: 64px;
+}
+
+.md .icon {
+  font-size: 28px;
+}
+
+.lg {
+  width: 80px;
+  height: 80px;
+}
+
+.lg .icon {
+  font-size: 36px;
+}
+
+/* Colors */
+.undo {
+  border-color: #ff9500;
+  color: #ff9500;
+}
+
+.reject {
+  border-color: #ff2d55;
+  color: #ff2d55;
+}
+
+.bookmark {
+  border-color: #007aff;
+  color: #007aff;
+}
+
+.like {
+  border-color: #34c759;
+  color: #34c759;
+}
+
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}

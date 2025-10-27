@@ -5,6 +5,7 @@ import React, {
   useReducer,
   useRef,
   useState,
+  useCallback,
 } from "react";
 import type { Media } from "../../../../../types/moviematch";
 import { useGesture } from "react-use-gesture";
@@ -13,17 +14,48 @@ import { Tr } from "../atoms/Tr";
 import { useStore } from "../../store";
 
 import styles from "./CardStack.module.css";
-import { HeartIcon } from "../icons/HeartIcon";
-import { CloseIcon } from "../icons/CloseIcon";
 const { abs, sign } = Math;
 
+// Export types for use in parent components
+export type SwipeAction = "undo" | "reject" | "bookmark" | "like";
+export type SwipeDirection = "left" | "right";
+
 type Card = Media;
+
+interface SwipeHistoryItem {
+  card: Card;
+  direction: SwipeDirection;
+  index: number;
+}
 
 interface CardStackProps {
   cards: Card[];
   renderCard: (card: Card) => ReactNode;
-  onCardDismissed: (card: Card, direction: "left" | "right") => void;
+  onCardDismissed: (card: Card, direction: SwipeDirection) => void;
+  onUndo?: () => void;
+  onBookmark?: (card: Card) => void;
+  onStateChange?: (state: { canUndo: boolean; currentCard: Card | null }) => void;
 }
+
+// Optional hook for parent components that want to manage card state externally
+// Note: CardStack manages its own state internally and exposes it via onStateChange callback
+// This hook is provided for advanced use cases where external state management is needed
+export const useCardStackState = () => {
+  const [canUndo, setCanUndo] = useState(false);
+  const [currentCard, setCurrentCard] = useState<Card | null>(null);
+  const [bookmarkedCards, setBookmarkedCards] = useState<Set<string>>(
+    new Set(),
+  );
+
+  return {
+    canUndo,
+    setCanUndo,
+    currentCard,
+    setCurrentCard,
+    bookmarkedCards,
+    setBookmarkedCards,
+  };
+};
 
 type Spring = {
   x: number;
@@ -67,10 +99,15 @@ export const useFirstChildWidth = (transform?: (n: number) => number) => {
 };
 
 export const CardStack = memo(
-  ({ cards, renderCard, onCardDismissed }: CardStackProps) => {
+  ({ cards, renderCard, onCardDismissed, onUndo, onBookmark, onStateChange }: CardStackProps) => {
     const vw = useViewportWidth((n) => n / 2);
     const [{ connectionStatus }] = useStore(["connectionStatus"]);
     const [elRef, ew] = useFirstChildWidth();
+
+    // History management for undo functionality (max 10 items)
+    const [swipeHistory, setSwipeHistory] = useState<SwipeHistoryItem[]>([]);
+    const [bookmarkedCards, setBookmarkedCards] = useState<Set<string>>(new Set());
+    const HISTORY_LIMIT = 10;
 
     const [{ items }, dispatch] = useReducer(
       function reducer(
@@ -79,9 +116,10 @@ export const CardStack = memo(
           | { type: "add" }
           | {
             type: "remove";
-            payload: { id: string; direction: "left" | "right" };
+            payload: { id: string; direction: SwipeDirection };
           }
-          | { type: "finalizeRemove"; payload: { id: string } },
+          | { type: "finalizeRemove"; payload: { id: string } }
+          | { type: "undo"; payload: { card: Card; stackIndex: number } },
       ) {
         let newIndex = index;
         let newItems = items;
@@ -149,6 +187,33 @@ export const CardStack = memo(
             }
             break;
           }
+          case "undo": {
+            // Restore card to the stack at the original position
+            const { card, stackIndex } = action.payload;
+            newIndex = Math.max(stackIndex, index);
+
+            const controller = new Controller<Spring>({
+              x: 0,
+              y: YZ_OFFSET,
+              z: YZ_OFFSET,
+              opacity: 0,
+            });
+
+            // Insert card back at the top of the stack
+            newItems = [
+              {
+                id: card.id,
+                item: card,
+                index: 0,
+                controller,
+                removed: false,
+              },
+              ...items.map((item) => ({ ...item, index: item.index + 1 })),
+            ];
+
+            controller.start({ opacity: 1 });
+            break;
+          }
         }
 
         for (const item of newItems) {
@@ -177,13 +242,29 @@ export const CardStack = memo(
       },
     );
 
-    const rateItem = (direction: "left" | "right") => {
+    const rateItem = (direction: SwipeDirection) => {
       const item = items.reduceRight<StackItem<Media> | null>(
         (item, _) => item || (!_.removed ? _ : null),
         null,
       );
 
       if (item) {
+        // Add to history for undo functionality
+        const historyItem: SwipeHistoryItem = {
+          card: item.item,
+          direction,
+          index: items.length,
+        };
+
+        setSwipeHistory((prev) => {
+          const newHistory = [...prev, historyItem];
+          // Keep only last HISTORY_LIMIT items
+          if (newHistory.length > HISTORY_LIMIT) {
+            return newHistory.slice(-HISTORY_LIMIT);
+          }
+          return newHistory;
+        });
+
         dispatch({
           type: "remove",
           payload: {
@@ -195,19 +276,68 @@ export const CardStack = memo(
       }
     };
 
+    const handleUndo = useCallback(() => {
+      if (swipeHistory.length > 0) {
+        const lastSwipe = swipeHistory[swipeHistory.length - 1];
+
+        // Remove last item from history
+        setSwipeHistory((prev) => prev.slice(0, -1));
+
+        // Restore card to stack
+        dispatch({
+          type: "undo",
+          payload: {
+            card: lastSwipe.card,
+            stackIndex: lastSwipe.index,
+          },
+        });
+
+        // Notify parent component
+        if (onUndo) {
+          onUndo();
+        }
+      }
+    }, [swipeHistory, onUndo]);
+
+    const handleBookmark = useCallback(() => {
+      const item = items.reduceRight<StackItem<Media> | null>(
+        (item, _) => item || (!_.removed ? _ : null),
+        null,
+      );
+
+      if (item) {
+        // Mark card as bookmarked without dismissing it
+        setBookmarkedCards((prev) => new Set(prev).add(item.id));
+
+        // Notify parent component
+        if (onBookmark) {
+          onBookmark(item.item);
+        }
+      }
+    }, [items, onBookmark]);
+
     useEffect(() => {
       const handler = (e: KeyboardEvent) => {
         if (connectionStatus !== "connected") {
           return;
         }
 
-        if (e.code === "ArrowLeft" || e.code === "ArrowRight") {
-          rateItem(e.code === "ArrowLeft" ? "left" : "right");
+        if (e.code === "ArrowLeft") {
+          rateItem("left");
+        } else if (e.code === "ArrowRight") {
+          rateItem("right");
+        } else if (e.code === "KeyZ" && (e.metaKey || e.ctrlKey)) {
+          // Cmd/Ctrl+Z for undo
+          e.preventDefault();
+          handleUndo();
+        } else if (e.code === "KeyB") {
+          // B for bookmark
+          handleBookmark();
         }
       };
       window.addEventListener("keydown", handler);
       return () => window.removeEventListener("keydown", handler);
-    }, [items]);
+    }, [items, handleUndo, handleBookmark]);
 
     const bind = useGesture(
       {
@@ -237,6 +367,27 @@ export const CardStack = memo(
         onDragEnd({ args: [id], movement: [x], velocities: [vx] }) {
           const p = abs(x / (vw + ew));
           if (p > 0.5 || (abs(vx) > 0.5 && connectionStatus === "connected")) {
+            const direction: SwipeDirection = sign(x) === -1 ? "left" : "right";
+            const item = items.find((_) => _.id === id);
+
+            // Add to history for undo functionality
+            if (item) {
+              const historyItem: SwipeHistoryItem = {
+                card: item.item,
+                direction,
+                index: items.length,
+              };
+
+              setSwipeHistory((prev) => {
+                const newHistory = [...prev, historyItem];
+                // Keep only last HISTORY_LIMIT items
+                if (newHistory.length > HISTORY_LIMIT) {
+                  return newHistory.slice(-HISTORY_LIMIT);
+                }
+                return newHistory;
+              });
+            }
+
             // TODO: dispatch is called once, but the
             // remove action is handled twice. Investigate why this
             // is, and if `useReducer` is the best tool for the job.
@@ -244,7 +395,7 @@ export const CardStack = memo(
               type: "remove",
               payload: {
                 id,
-                direction: sign(x) === -1 ? "left" : "right",
+                direction,
               },
             });
             dispatch({ type: "add" });
@@ -271,6 +422,23 @@ export const CardStack = memo(
 
     const isEmpty = items.length === 0;
 
+    // Get current card for parent components
+    const currentCard = items.reduceRight<Card | null>(
+      (card, item) => card || (!item.removed ? item.item : null),
+      null,
+    );
+
+    // Export state that can be used by parent components
+    // Parent can access via ref or by wrapping this component
+    const canUndo = swipeHistory.length > 0;
+
+    // Notify parent of state changes
+    useEffect(() => {
+      if (onStateChange) {
+        onStateChange({ canUndo, currentCard });
+      }
+    }, [canUndo, currentCard, onStateChange]);
+
     return (
       <>
         <div className={isEmpty ? styles.emptyStack : styles.stack} ref={elRef}>
@@ -278,22 +446,6 @@ export const CardStack = memo(
             <p className={styles.emptyText}>
               <Tr name="RATE_SECTION_EXHAUSTED_CARDS" />
             </p>
-          )}
-          {!isEmpty && (
-            <>
-              <button
-                className={styles.dislikeButton}
-                onClick={() => rateItem("left")}
-              >
-                <CloseIcon />
-              </button>
-              <button
-                className={styles.likeButton}
-                onClick={() => rateItem("right")}
-              >
-                <HeartIcon />
-              </button>
-            </>
           )}
           {items.map((item) => {
             const { x, y, z, opacity } = item.controller.springs;

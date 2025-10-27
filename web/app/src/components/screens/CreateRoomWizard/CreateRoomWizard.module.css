@@ -1,0 +1,139 @@
+@import "../../../design/tokens.css";
+
+.wizard {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: var(--spacing-lg);
+  min-height: calc(100vh - 160px);
+  display: flex;
+  flex-direction: column;
+}
+
+.progressContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--spacing-xxl);
+  padding: var(--spacing-md) 0;
+  gap: 0;
+}
+
+.progressStep {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid var(--border-medium);
+  background: var(--surface);
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition: all var(--transition-base);
+  position: relative;
+  z-index: 2;
+  flex-shrink: 0;
+}
+
+.progressStep:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.progressStepActive {
+  border-color: var(--color-warning);
+  background: var(--color-warning);
+  color: var(--background);
+  box-shadow: 0 0 0 4px rgba(255, 149, 0, 0.2);
+}
+
+.progressStepCompleted {
+  border-color: var(--color-success);
+  background: var(--color-success);
+  color: var(--background);
+  cursor: pointer;
+}
+
+.progressStepCompleted:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 0 4px rgba(52, 199, 89, 0.2);
+}
+
+.progressStepInactive {
+  border-color: var(--border-light);
+  background: transparent;
+  color: var(--text-tertiary);
+}
+
+.progressLine {
+  height: 2px;
+  flex: 1;
+  min-width: 40px;
+  max-width: 80px;
+  transition: background-color var(--transition-base);
+  position: relative;
+  z-index: 1;
+}
+
+.progressLineCompleted {
+  background: var(--color-success);
+}
+
+.progressLineInactive {
+  background: var(--border-light);
+}
+
+.stepContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  animation: slideIn var(--transition-slow) var(--easing-ease-out);
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Mobile Responsive */
+@media (max-width: 640px) {
+  .wizard {
+    padding: var(--spacing-md);
+  }
+
+  .progressContainer {
+    margin-bottom: var(--spacing-lg);
+    padding: var(--spacing-sm) 0;
+  }
+
+  .progressStep {
+    width: 32px;
+    height: 32px;
+    font-size: var(--font-size-xs);
+  }
+
+  .progressLine {
+    min-width: 20px;
+    max-width: 40px;
+  }
+}
+
+@media (max-width: 480px) {
+  .progressStep {
+    width: 28px;
+    height: 28px;
+  }
+
+  .progressLine {
+    min-width: 16px;
+    max-width: 24px;
+  }
+}

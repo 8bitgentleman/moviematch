@@ -1,0 +1,262 @@
+.matchesScreen {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  background-color: var(--color-background, #000000);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  /* Safe area support */
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Header section */
+.header {
+  padding: 24px 24px 16px;
+  background-color: #000000;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.title {
+  font-size: 32px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 4px 0;
+  line-height: 1.2;
+}
+
+.subtitle {
+  font-size: 16px;
+  color: #b3b3b3;
+  margin: 0;
+}
+
+/* Sort controls */
+.sortContainer {
+  padding: 16px 24px;
+  background-color: #000000;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Content area */
+.content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Empty state */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  padding: 48px 24px;
+  text-align: center;
+}
+
+.emptyIcon {
+  font-size: 80px;
+  color: #666666;
+  margin-bottom: 24px;
+  opacity: 0.5;
+}
+
+.emptyTitle {
+  font-size: 24px;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 0 0 12px 0;
+}
+
+.emptyMessage {
+  font-size: 16px;
+  color: #b3b3b3;
+  margin: 0;
+  max-width: 300px;
+}
+
+/* Grid layout */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  padding: 24px;
+}
+
+/* Match card */
+.matchCard {
+  display: flex;
+  flex-direction: column;
+  background-color: #1a1a1a;
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 200ms cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.matchCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+}
+
+.matchCard:active {
+  transform: translateY(-2px);
+}
+
+.matchCard:focus-visible {
+  outline: 2px solid #ff9500;
+  outline-offset: 2px;
+}
+
+/* Poster container */
+.posterContainer {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  background-color: #2a2a2a;
+  overflow: hidden;
+}
+
+.poster {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.posterPlaceholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.placeholderText {
+  font-size: 48px;
+  font-weight: 700;
+  color: #666666;
+}
+
+.gradient {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 50%;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.8) 0%,
+    rgba(0, 0, 0, 0.4) 50%,
+    transparent 100%
+  );
+  pointer-events: none;
+}
+
+/* Title overlay */
+.titleOverlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 12px;
+}
+
+.movieTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 0;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Metadata section */
+.metadata {
+  padding: 12px;
+  background-color: #1a1a1a;
+}
+
+.matchTime {
+  font-size: 12px;
+  color: #ff9500;
+  margin: 0 0 4px 0;
+  font-weight: 500;
+}
+
+.likedBy {
+  font-size: 13px;
+  color: #b3b3b3;
+  margin: 0 0 8px 0;
+  line-height: 1.4;
+}
+
+.rating {
+  font-size: 14px;
+  color: #ff9500;
+  margin: 0;
+  font-weight: 600;
+}
+
+/* Responsive design */
+@media (min-width: 480px) {
+  .grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 768px) {
+  .grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    padding: 32px;
+  }
+
+  .movieTitle {
+    font-size: 15px;
+  }
+
+  .metadata {
+    padding: 16px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .matchesScreen {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .grid {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+
+/* Smooth scrolling */
+@media (prefers-reduced-motion: no-preference) {
+  .content {
+    scroll-behavior: smooth;
+  }
+}
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .matchCard {
+    transition: none;
+  }
+
+  .matchCard:hover {
+    transform: none;
+  }
+}
