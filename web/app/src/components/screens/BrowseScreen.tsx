@@ -122,6 +122,7 @@ export const BrowseScreen = ({
         {/* Search */}
         <div className={styles.searchContainer}>
           <TextInput
+            name="search"
             type="text"
             placeholder="Search movies..."
             value={searchQuery}
@@ -134,6 +135,7 @@ export const BrowseScreen = ({
         {/* Filter controls */}
         <div className={styles.filterControls}>
           <Select
+            name="genre"
             value={selectedGenre}
             onChange={(e) => setSelectedGenre(e.target.value)}
             className={styles.filterSelect}
@@ -147,6 +149,7 @@ export const BrowseScreen = ({
           </Select>
 
           <Select
+            name="sort"
             value={sortOption}
             onChange={(e) => setSortOption(e.target.value as SortOption)}
             className={styles.filterSelect}
@@ -159,7 +162,8 @@ export const BrowseScreen = ({
           </Select>
 
           <Select
-            value={minRating}
+            name="rating"
+            value={String(minRating)}
             onChange={(e) => setMinRating(Number(e.target.value))}
             className={styles.filterSelect}
             aria-label="Minimum rating"

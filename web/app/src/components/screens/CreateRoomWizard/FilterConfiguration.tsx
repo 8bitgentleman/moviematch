@@ -2,7 +2,7 @@ import React, { useState, useCallback } from "react";
 import { Button } from "../../atoms/Button";
 import { ButtonContainer } from "../../layout/ButtonContainer";
 import { Select } from "../../atoms/Select";
-import { SegmentedControls } from "../../atoms/SegmentedControls";
+import { SegmentedControls, SegmentedControlOption } from "../../atoms/SegmentedControls";
 import type { WizardState } from "./CreateRoomWizard";
 
 import styles from "./FilterConfiguration.module.css";
@@ -135,13 +135,13 @@ export const FilterConfiguration: React.FC<FilterConfigurationProps> = ({
           <div className={styles.sectionHeader}>
             <h3 className={styles.sectionTitle}>Genres</h3>
             <SegmentedControls
+              name="genreMode"
               value={localGenreMode}
               onChange={(value) => setLocalGenreMode(value as "and" | "or")}
-              options={[
-                { value: "or", label: "Any" },
-                { value: "and", label: "All" },
-              ]}
-            />
+            >
+              <SegmentedControlOption value="or">Any</SegmentedControlOption>
+              <SegmentedControlOption value="and">All</SegmentedControlOption>
+            </SegmentedControls>
           </div>
           <div className={styles.chipContainer}>
             {AVAILABLE_GENRES.map((genre) => (
@@ -218,15 +218,15 @@ export const FilterConfiguration: React.FC<FilterConfigurationProps> = ({
         <div className={styles.section}>
           <h3 className={styles.sectionTitle}>Watched Status</h3>
           <SegmentedControls
+            name="watchedStatus"
             value={localWatchedStatus}
             onChange={(value) =>
               setLocalWatchedStatus(value as "all" | "unwatched" | "watched")}
-            options={[
-              { value: "all", label: "All" },
-              { value: "unwatched", label: "Unwatched" },
-              { value: "watched", label: "Watched" },
-            ]}
-          />
+          >
+            <SegmentedControlOption value="all">All</SegmentedControlOption>
+            <SegmentedControlOption value="unwatched">Unwatched</SegmentedControlOption>
+            <SegmentedControlOption value="watched">Watched</SegmentedControlOption>
+          </SegmentedControls>
         </div>
 
         {/* Sort Order */}
@@ -239,12 +239,11 @@ export const FilterConfiguration: React.FC<FilterConfigurationProps> = ({
               setLocalSortOrder(
                 e.target.value as "newest" | "oldest" | "random"
               )}
-            options={[
-              { value: "newest", label: "Newest First" },
-              { value: "oldest", label: "Oldest First" },
-              { value: "random", label: "Random" },
-            ]}
-          />
+          >
+            <option value="newest">Newest First</option>
+            <option value="oldest">Oldest First</option>
+            <option value="random">Random</option>
+          </Select>
         </div>
       </div>
 

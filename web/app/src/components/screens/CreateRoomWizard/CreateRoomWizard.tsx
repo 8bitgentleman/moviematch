@@ -1,13 +1,13 @@
 import React, { useState, useCallback } from "react";
-import { useStore } from "../../store";
-import { Layout } from "../layout/Layout";
-import { ErrorMessage } from "../atoms/ErrorMessage";
+import { useStore } from "../../../store";
+import { Layout } from "../../layout/Layout";
+import { ErrorMessage } from "../../atoms/ErrorMessage";
 import { RoomBasicInfo } from "./RoomBasicInfo";
 import { LibrarySelection } from "./LibrarySelection";
 import { FilterConfiguration } from "./FilterConfiguration";
 import { RoomTypeSelection } from "./RoomTypeSelection";
 import { RoomReview } from "./RoomReview";
-import type { RoomType } from "../../../../../types/moviematch";
+import type { RoomType } from "../../../../../../types/moviematch";
 
 import styles from "./CreateRoomWizard.module.css";
 

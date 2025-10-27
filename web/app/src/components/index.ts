@@ -76,7 +76,8 @@ export { Select } from "./atoms/Select";
 export { Spinner } from "./atoms/Spinner";
 export { Switch } from "./atoms/Switch";
 export { TextInput } from "./atoms/TextInput";
-export { Toast, ToastList } from "./atoms/Toast";
+export { ToastList } from "./atoms/Toast";
+export type { Toast } from "./atoms/Toast";
 export { Tr } from "./atoms/Tr";
 export { Version } from "./atoms/Version";
 export { VisuallyHidden } from "./atoms/VisuallyHidden";
@@ -87,7 +88,7 @@ export { AddRemoveList } from "./atoms/AddRemoveList";
 // ============================================================================
 
 export { BookmarkIcon } from "./icons/BookmarkIcon";
-export { ChevronDown } from "./icons/ChevronDown";
+export { ChevronDownIcon } from "./icons/ChevronDown";
 export { CloseIcon } from "./icons/CloseIcon";
 export { ContentRatingSymbol } from "./icons/ContentRatingSymbol";
 export { ExpandIcon } from "./icons/ExpandIcon";

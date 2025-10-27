@@ -2,7 +2,6 @@ import React, { useState, useCallback } from "react";
 import type { User } from "../../../../../types/moviematch";
 import { NavigationBar } from "../molecules/NavigationBar";
 import { Avatar } from "../atoms/Avatar";
-import { Button } from "../atoms/Button";
 import { UserProgressItem } from "../molecules/UserProgressItem";
 import styles from "./SettingsScreen.module.css";
 
@@ -123,8 +122,7 @@ export const SettingsScreen = ({
               {participants.map((participant) => (
                 <UserProgressItem
                   key={participant.user.userName}
-                  userName={participant.user.userName}
-                  avatarUrl={participant.user.avatarImage}
+                  user={participant.user}
                   progress={participant.progress}
                 />
               ))}
@@ -141,7 +139,6 @@ export const SettingsScreen = ({
               <Avatar
                 userName={user.userName}
                 avatarUrl={user.avatarImage}
-                size="lg"
               />
               <div className={styles.profileDetails}>
                 <h3 className={styles.profileName}>{user.userName}</h3>

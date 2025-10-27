@@ -3,7 +3,7 @@ import { Button } from "../../atoms/Button";
 import { ButtonContainer } from "../../layout/ButtonContainer";
 import { Spinner } from "../../atoms/Spinner";
 import type { WizardState } from "./CreateRoomWizard";
-import type { Library } from "../../../../../types/moviematch";
+import type { Library } from "../../../../../../types/moviematch";
 
 import styles from "./LibrarySelection.module.css";
 
@@ -25,7 +25,7 @@ export const LibrarySelection: React.FC<LibrarySelectionProps> = ({
     new Set(selectedLibraries)
   );
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, _setError] = useState<string | null>(null);
 
   useEffect(() => {
     // Mock libraries for now - in production, fetch from WebSocket

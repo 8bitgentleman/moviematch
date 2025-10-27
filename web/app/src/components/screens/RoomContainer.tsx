@@ -1,5 +1,5 @@
-import React, { useState, useCallback, useEffect } from "react";
-import type { Media, Match, User } from "../../../../../types/moviematch";
+import React, { useState, useCallback } from "react";
+import type { Media, User } from "../../../../../types/moviematch";
 import { SwipeScreen } from "./SwipeScreen";
 import { BrowseScreen } from "./BrowseScreen";
 import { MatchesScreen } from "./MatchesScreen";
@@ -30,7 +30,7 @@ interface RoomContainerProps {
 export const RoomContainer = ({ initialTab = "swipe" }: RoomContainerProps) => {
   const [{ room, user }, dispatch] = useStore(["room", "user"]);
   const [activeTab, setActiveTab] = useState<TabType>(initialTab);
-  const [bookmarkedMedia, setBookmarkedMedia] = useState<Set<string>>(new Set());
+  const [_bookmarkedMedia, setBookmarkedMedia] = useState<Set<string>>(new Set());
 
   // Ensure we have room data
   if (!room || !room.media || !user) {

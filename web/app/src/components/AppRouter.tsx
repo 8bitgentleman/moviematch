@@ -38,7 +38,7 @@ export const AppRouter = ({ route, translations }: AppRouterProps) => {
     login: LoginScreen,
     join: JoinScreen,
     createRoom: CreateRoomWizard, // Phase 3: New enhanced wizard
-    room: RoomContainer, // Phase 3: New tabbed container
+    room: () => <RoomContainer />, // Phase 3: New tabbed container
     config: ConfigScreen,
   };
 

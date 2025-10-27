@@ -2,7 +2,7 @@ import React, { useState, useCallback } from "react";
 import { Button } from "../../atoms/Button";
 import { ButtonContainer } from "../../layout/ButtonContainer";
 import type { WizardState } from "./CreateRoomWizard";
-import type { RoomType } from "../../../../../types/moviematch";
+import type { RoomType } from "../../../../../../types/moviematch";
 
 import styles from "./RoomTypeSelection.module.css";
 

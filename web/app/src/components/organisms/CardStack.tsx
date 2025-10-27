@@ -106,7 +106,7 @@ export const CardStack = memo(
 
     // History management for undo functionality (max 10 items)
     const [swipeHistory, setSwipeHistory] = useState<SwipeHistoryItem[]>([]);
-    const [bookmarkedCards, setBookmarkedCards] = useState<Set<string>>(new Set());
+    const [_bookmarkedCards, setBookmarkedCards] = useState<Set<string>>(new Set());
     const HISTORY_LIMIT = 10;
 
     const [{ items }, dispatch] = useReducer(

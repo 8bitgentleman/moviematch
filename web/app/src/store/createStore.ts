@@ -43,30 +43,31 @@ export const createStore = () => {
 
   const forwardActions: Middleware<Dispatch, Store> = ({ getState }) =>
     (next) =>
-      (action: Actions) => {
-        if (action.type in client) {
-          client[action.type as ServerMessage["type"]](
-            "payload" in action ? action.payload as any : undefined,
+      (action: unknown) => {
+        const typedAction = action as Actions;
+        if (typedAction.type in client) {
+          client[typedAction.type as ServerMessage["type"]](
+            "payload" in typedAction ? typedAction.payload as any : undefined,
           );
         }
 
-        if (action.type === "plexLogin") {
+        if (typedAction.type === "plexLogin") {
           plex.signIn();
         }
 
-        if (action.type === "loginSuccess") {
-          localStorage.setItem("userName", action.payload.userName!);
+        if (typedAction.type === "loginSuccess") {
+          localStorage.setItem("userName", typedAction.payload.userName!);
         }
 
-        if (action.type === "logout") {
+        if (typedAction.type === "logout") {
           localStorage.removeItem("userName");
           localStorage.removeItem("plexToken");
           localStorage.removeItem("plexTvPin");
         }
 
         if (
-          action.type === "joinRoomSuccess" ||
-          action.type === "createRoomSuccess"
+          typedAction.type === "joinRoomSuccess" ||
+          typedAction.type === "createRoomSuccess"
         ) {
           const roomName = getState().room?.name;
           if (roomName) {
@@ -77,14 +78,14 @@ export const createStore = () => {
         }
 
         if (
-          action.type === "leaveRoomSuccess" || action.type === "logoutSuccess"
+          typedAction.type === "leaveRoomSuccess" || typedAction.type === "logoutSuccess"
         ) {
           const newUrl = new URL(location.href);
           newUrl.searchParams.delete("roomName");
           history.replaceState(null, document.title, newUrl.href);
         }
 
-        return next(action);
+        return next(typedAction);
       };
 
   const store = createReduxStore(
