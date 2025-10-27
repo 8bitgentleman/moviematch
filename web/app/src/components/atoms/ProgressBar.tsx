@@ -4,9 +4,10 @@ import styles from "./ProgressBar.module.css";
 interface ProgressBarProps {
   total: number;
   current: number;
+  onPageChange?: (page: number) => void;
 }
 
-export const ProgressBar = ({ total, current }: ProgressBarProps) => {
+export const ProgressBar = ({ total, current, onPageChange }: ProgressBarProps) => {
   return (
     <div
       className={styles.progressBar}
@@ -23,6 +24,8 @@ export const ProgressBar = ({ total, current }: ProgressBarProps) => {
             index === current ? styles.active : ""
           }`}
           aria-current={index === current ? "true" : undefined}
+          onClick={() => onPageChange?.(index)}
+          style={{ cursor: onPageChange ? 'pointer' : 'default' }}
         />
       ))}
     </div>

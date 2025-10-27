@@ -131,6 +131,7 @@
 /* Action bar section */
 .actionBarContainer {
   padding: 16px 24px 8px;
+  padding-bottom: calc(88px + env(safe-area-inset-bottom)); /* 80px nav bar + 8px spacing */
   background-color: rgba(0, 0, 0, 0.95);
 }
 

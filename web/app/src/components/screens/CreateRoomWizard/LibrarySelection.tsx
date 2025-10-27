@@ -2,8 +2,8 @@ import React, { useState, useEffect, useCallback } from "react";
 import { Button } from "../../atoms/Button";
 import { ButtonContainer } from "../../layout/ButtonContainer";
 import { Spinner } from "../../atoms/Spinner";
+import { useStore } from "../../../store";
 import type { WizardState } from "./CreateRoomWizard";
-import type { Library } from "../../../../../../types/moviematch";
 
 import styles from "./LibrarySelection.module.css";
 
@@ -20,28 +20,15 @@ export const LibrarySelection: React.FC<LibrarySelectionProps> = ({
   onNext,
   onBack,
 }) => {
-  const [libraries, setLibraries] = useState<Library[]>([]);
+  const [{ createRoom }, dispatch] = useStore(["createRoom"]);
   const [selected, setSelected] = useState<Set<string>>(
     new Set(selectedLibraries)
   );
-  const [loading, setLoading] = useState(true);
-  const [error, _setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Mock libraries for now - in production, fetch from WebSocket
-    // TODO: Implement WebSocket message { type: "getLibraries" }
-    const mockLibraries: Library[] = [
-      { key: "1", title: "Movies", type: "movie" },
-      { key: "2", title: "TV Shows", type: "show" },
-      { key: "3", title: "Kids Movies", type: "movie" },
-      { key: "4", title: "Documentaries", type: "movie" },
-    ];
-
-    setTimeout(() => {
-      setLibraries(mockLibraries);
-      setLoading(false);
-    }, 500);
-  }, []);
+    // Fetch libraries from WebSocket when component mounts
+    dispatch({ type: "getLibraries" });
+  }, [dispatch]);
 
   const toggleLibrary = useCallback((key: string) => {
     setSelected((prev) => {
@@ -56,8 +43,10 @@ export const LibrarySelection: React.FC<LibrarySelectionProps> = ({
   }, []);
 
   const selectAll = useCallback(() => {
-    setSelected(new Set(libraries.map((lib) => lib.key)));
-  }, [libraries]);
+    if (createRoom?.libraries) {
+      setSelected(new Set(createRoom.libraries.map((lib) => lib.key)));
+    }
+  }, [createRoom?.libraries]);
 
   const deselectAll = useCallback(() => {
     setSelected(new Set());
@@ -67,6 +56,10 @@ export const LibrarySelection: React.FC<LibrarySelectionProps> = ({
     onUpdate({ selectedLibraries: Array.from(selected) });
     onNext();
   }, [selected, onUpdate, onNext]);
+
+  const libraries = createRoom?.libraries ?? [];
+  const loading = createRoom?.librariesLoading ?? true;
+  const error = createRoom?.librariesError;
 
   if (loading) {
     return (

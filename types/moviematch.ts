@@ -43,7 +43,8 @@ export type ServerMessage =
   | { type: "setLocale"; payload: Locale }
   | { type: "setup"; payload: Config }
   | { type: "requestFilters" }
-  | { type: "requestFilterValues"; payload: FilterValueRequest };
+  | { type: "requestFilterValues"; payload: FilterValueRequest }
+  | { type: "getLibraries" };
 
 // Messages intended for the UI
 export type ClientMessage =
@@ -70,6 +71,8 @@ export type ClientMessage =
     payload: { request: FilterValueRequest; values: FilterValue[] };
   }
   | { type: "requestFilterValuesError" }
+  | { type: "getLibrariesSuccess"; payload: Library[] }
+  | { type: "getLibrariesError"; payload: { message: string } }
   | { type: "userJoinedRoom"; payload: UserProgress }
   | { type: "userLeftRoom"; payload: User }
   | { type: "userProgress"; payload: UserProgress };

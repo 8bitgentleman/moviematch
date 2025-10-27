@@ -33,38 +33,39 @@ export const SwipeScreen = ({
   const [carouselPage, setCarouselPage] = useState(0);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showTrailerModal, setShowTrailerModal] = useState(false);
-  const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const [canUndo, setCanUndo] = useState(false);
   const [currentCard, setCurrentCard] = useState<Media | null>(null);
+  const [swipeHandlers, setSwipeHandlers] = useState<{
+    swipeLeft: () => void;
+    swipeRight: () => void;
+  } | null>(null);
 
   // Get current media for display
-  const currentMedia = currentCard || media[currentCardIndex];
+  const currentMedia = currentCard || media[0];
 
   // Handle card tap - cycle through carousel pages
   const handleCardTap = useCallback(() => {
     setCarouselPage((prev) => (prev + 1) % 3);
   }, []);
 
-  // Action handlers
+  // Action handlers - use CardStack's swipe animation
   const handleUndo = useCallback(() => {
     // CardStack handles undo internally via onUndo callback
   }, []);
 
   const handleReject = useCallback(() => {
-    if (currentMedia) {
-      onSwipe(currentMedia.id, "dislike");
+    if (swipeHandlers && currentMedia) {
+      swipeHandlers.swipeLeft();
       setCarouselPage(0); // Reset carousel on swipe
-      setCurrentCardIndex((prev) => prev + 1);
     }
-  }, [currentMedia, onSwipe]);
+  }, [swipeHandlers, currentMedia]);
 
   const handleLike = useCallback(() => {
-    if (currentMedia) {
-      onSwipe(currentMedia.id, "like");
+    if (swipeHandlers && currentMedia) {
+      swipeHandlers.swipeRight();
       setCarouselPage(0); // Reset carousel on swipe
-      setCurrentCardIndex((prev) => prev + 1);
     }
-  }, [currentMedia, onSwipe]);
+  }, [swipeHandlers, currentMedia]);
 
   const handleBookmark = useCallback(() => {
     if (currentMedia && onBookmark) {
@@ -83,7 +84,6 @@ export const SwipeScreen = ({
       const action = direction === "right" ? "like" : "dislike";
       onSwipe(card.id, action);
       setCarouselPage(0); // Reset carousel
-      setCurrentCardIndex((prev) => prev + 1);
     },
     [onSwipe]
   );
@@ -103,7 +103,7 @@ export const SwipeScreen = ({
     <div className={styles.swipeScreen}>
       {/* Progress indicators at top */}
       <div className={styles.progressBarContainer}>
-        <ProgressBar total={3} current={carouselPage} />
+        <ProgressBar total={3} current={carouselPage} onPageChange={setCarouselPage} />
       </div>
 
       {/* Main card area */}
@@ -140,19 +140,34 @@ export const SwipeScreen = ({
           onCardDismissed={handleCardDismissed}
           onStateChange={handleCardStackStateChange}
           onBookmark={onBookmark}
+          onSwipeRequest={setSwipeHandlers}
         />
 
-        {/* Trailer overlay on page 2 */}
+        {/* Trailer/Link overlay on page 2 - Opens in Plex instead of iframe due to X-Frame-Options */}
         {showTrailerOverlay && (
           <div className={styles.trailerOverlay}>
-            <iframe
-              className={styles.trailerFrame}
-              src={currentMedia.linkUrl}
-              title="Movie trailer"
-              frameBorder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            />
+            <div style={{ textAlign: 'center', padding: '24px', color: '#ffffff' }}>
+              <h3 style={{ marginBottom: '16px' }}>View in Plex</h3>
+              <p style={{ marginBottom: '24px', color: '#b3b3b3' }}>
+                This movie can be viewed directly in your Plex app
+              </p>
+              <a
+                href={currentMedia.linkUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: 'inline-block',
+                  padding: '12px 24px',
+                  backgroundColor: '#ff9500',
+                  color: '#ffffff',
+                  borderRadius: '8px',
+                  textDecoration: 'none',
+                  fontWeight: 600,
+                }}
+              >
+                Open in Plex
+              </a>
+            </div>
           </div>
         )}
       </div>

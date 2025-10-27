@@ -189,6 +189,15 @@ export class MovieMatchClient extends EventTarget {
     ]);
   };
 
+  getLibraries = async () => {
+    this.sendMessage({ type: "getLibraries" });
+
+    return await Promise.race([
+      this.waitForMessage("getLibrariesSuccess"),
+      this.waitForMessage("getLibrariesError"),
+    ]);
+  };
+
   setLocale = async (locale: Locale) => {
     await this.waitForConnected();
 

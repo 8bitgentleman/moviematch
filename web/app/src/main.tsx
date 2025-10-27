@@ -4,14 +4,8 @@ import { Provider, useDispatch } from "react-redux";
 
 import "./main.css";
 
-import { LoginScreen } from "./components/screens/Login";
-import { JoinScreen } from "./components/screens/Join";
-import { CreateScreen } from "./components/screens/Create";
-import { RoomScreen } from "./components/screens/Room";
-import { Loading } from "./components/screens/Loading";
+import { AppRouter } from "./components/AppRouter";
 import { ToastList } from "./components/atoms/Toast";
-import { ConfigScreen } from "./components/screens/Config";
-import type { Routes } from "./types";
 import { createStore, Dispatch, useSelector } from "./store";
 
 const store = createStore();
@@ -27,30 +21,7 @@ const MovieMatch = () => {
 
   return (
     <>
-      {(() => {
-        const routes: Record<
-          Routes,
-          () => JSX.Element
-        > = {
-          loading: Loading,
-          login: LoginScreen,
-          join: JoinScreen,
-          createRoom: CreateScreen,
-          room: RoomScreen,
-          config: ConfigScreen,
-        };
-        const CurrentComponent = routes[route];
-
-        if (!translations) {
-          return <Loading />;
-        }
-
-        if (CurrentComponent) {
-          return <CurrentComponent />;
-        } else {
-          return <p>No route for {route}</p>;
-        }
-      })()}
+      <AppRouter route={route} translations={translations} />
       <ToastList
         toasts={toasts}
         removeToast={(toast) =>

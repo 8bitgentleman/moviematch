@@ -50,6 +50,20 @@ export const filtersToPlexQueryString = (
         continue;
       }
 
+      // Phase 3: Handle rating filter with range (min/max)
+      // Frontend sends: {key: "rating", operator: ">=", value: [">=0", "<=10"]}
+      // We need to parse this and create separate min/max params
+      if (filter.key === "rating" && filter.value.length > 0) {
+        for (const val of filter.value) {
+          if (val.startsWith(">=")) {
+            queryString["rating>>"] = val.substring(2);
+          } else if (val.startsWith("<=")) {
+            queryString["rating<<"] = val.substring(2);
+          }
+        }
+        continue;
+      }
+
       const [key, value] = filterToQueryString(filter);
       queryString[key] = value;
     }

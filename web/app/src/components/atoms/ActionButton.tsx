@@ -21,10 +21,17 @@ export const ActionButton = ({
   disabled = false,
   ariaLabel,
 }: ActionButtonProps) => {
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent event from bubbling to parent elements
+    if (onClick) {
+      onClick();
+    }
+  };
+
   return (
     <button
       className={`${styles.actionButton} ${styles[size]} ${styles[color]}`}
-      onClick={onClick}
+      onClick={handleClick}
       disabled={disabled}
       aria-label={ariaLabel}
       type="button"

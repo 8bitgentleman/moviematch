@@ -6,6 +6,7 @@ import type {
   ClientMessage,
   Filters,
   FilterValue,
+  Library,
   Match,
   Media,
   ServerMessage,
@@ -56,6 +57,9 @@ export interface Store {
   createRoom?: {
     availableFilters?: Filters;
     filterValues?: Record<string, FilterValue[]>;
+    libraries?: Library[];
+    librariesLoading?: boolean;
+    librariesError?: string;
   };
   room?: {
     name: string;

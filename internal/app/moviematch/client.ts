@@ -120,6 +120,9 @@ export class Client {
               case "requestFilterValues":
                 await this.handleRequestFilterValues(message.payload);
                 break;
+              case "getLibraries":
+                await this.handleGetLibraries();
+                break;
               default:
                 log.info(`Unhandled message: ${messageText}`);
                 break;
@@ -498,6 +501,33 @@ export class Client {
     } else {
       this.sendMessage({
         type: "requestFilterValuesError",
+      });
+    }
+  }
+
+  async handleGetLibraries() {
+    try {
+      if (this.ctx.providers.length) {
+        // TODO - Aggregate libraries from all providers.
+        const [provider] = this.ctx.providers;
+        const libraries = await provider.getLibraries();
+        this.sendMessage({
+          type: "getLibrariesSuccess",
+          payload: libraries,
+        });
+      } else {
+        this.sendMessage({
+          type: "getLibrariesError",
+          payload: { message: "No media providers configured" },
+        });
+      }
+    } catch (err) {
+      log.error(`Error fetching libraries: ${String(err)}`);
+      this.sendMessage({
+        type: "getLibrariesError",
+        payload: {
+          message: err instanceof Error ? err.message : "Failed to fetch libraries",
+        },
       });
     }
   }

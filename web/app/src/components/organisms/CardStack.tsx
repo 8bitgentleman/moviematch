@@ -35,6 +35,7 @@ interface CardStackProps {
   onUndo?: () => void;
   onBookmark?: (card: Card) => void;
   onStateChange?: (state: { canUndo: boolean; currentCard: Card | null }) => void;
+  onSwipeRequest?: (handler: {swipeLeft: () => void; swipeRight: () => void}) => void;
 }
 
 // Optional hook for parent components that want to manage card state externally
@@ -99,7 +100,7 @@ export const useFirstChildWidth = (transform?: (n: number) => number) => {
 };
 
 export const CardStack = memo(
-  ({ cards, renderCard, onCardDismissed, onUndo, onBookmark, onStateChange }: CardStackProps) => {
+  ({ cards, renderCard, onCardDismissed, onUndo, onBookmark, onStateChange, onSwipeRequest }: CardStackProps) => {
     const vw = useViewportWidth((n) => n / 2);
     const [{ connectionStatus }] = useStore(["connectionStatus"]);
     const [elRef, ew] = useFirstChildWidth();
@@ -108,6 +109,12 @@ export const CardStack = memo(
     const [swipeHistory, setSwipeHistory] = useState<SwipeHistoryItem[]>([]);
     const [_bookmarkedCards, setBookmarkedCards] = useState<Set<string>>(new Set());
     const HISTORY_LIMIT = 10;
+
+    // Guard against double-swiping
+    const swipeInProgress = useRef(false);
+
+    // Track dismissed cards to prevent duplicate onCardDismissed calls
+    const dismissedCards = useRef<Set<string>>(new Set());
 
     const [{ items }, dispatch] = useReducer(
       function reducer(
@@ -126,10 +133,11 @@ export const CardStack = memo(
 
         switch (action.type) {
           case "add": {
-            newIndex = index + 1;
-            if (newIndex > cards.length) {
+            // Check if there are more cards to load before attempting to add
+            if (index >= cards.length) {
               return { items, index };
             }
+            newIndex = index + 1;
             const [newCard] = cards.slice(index, newIndex);
             const controller = new Controller<Spring>({
               x: 0,
@@ -153,10 +161,11 @@ export const CardStack = memo(
           }
           case "remove": {
             const item = items.find((_) => _.id === action.payload.id);
-            if (item) {
+            if (item && !item.removed) {
               const itemIndex = items.indexOf(item);
 
               if (item.controller.springs.x.idle) {
+                const cardId = item.id;
                 item.controller
                   .start({
                     x: (action.payload.direction === "left" ? -1 : 1) *
@@ -168,7 +177,8 @@ export const CardStack = memo(
                       type: "finalizeRemove",
                       payload: { id: action.payload.id },
                     });
-                    onCardDismissed(item.item, action.payload.direction);
+                    // onCardDismissed is now called in rateItem before dispatch
+                    // to maintain reducer purity and prevent duplicate calls
                   });
               }
 
@@ -242,13 +252,31 @@ export const CardStack = memo(
       },
     );
 
-    const rateItem = (direction: SwipeDirection) => {
+    const rateItem = useCallback((direction: SwipeDirection) => {
+      // Prevent double-swiping
+      if (swipeInProgress.current) {
+        console.warn("Swipe already in progress, ignoring duplicate swipe");
+        return;
+      }
+
       const item = items.reduceRight<StackItem<Media> | null>(
         (item, _) => item || (!_.removed ? _ : null),
         null,
       );
 
       if (item) {
+        // Check if already dismissed
+        if (dismissedCards.current.has(item.id)) {
+          console.warn("Card already dismissed, ignoring");
+          return;
+        }
+
+        swipeInProgress.current = true;
+        dismissedCards.current.add(item.id);
+
+        // Call onCardDismissed BEFORE dispatching (outside reducer)
+        onCardDismissed(item.item, direction);
+
         // Add to history for undo functionality
         const historyItem: SwipeHistoryItem = {
           card: item.item,
@@ -273,8 +301,13 @@ export const CardStack = memo(
           },
         });
         dispatch({ type: "add" });
+
+        // Reset flag after animation completes (150ms duration from reducer)
+        setTimeout(() => {
+          swipeInProgress.current = false;
+        }, 200);
       }
-    };
+    }, [items, onCardDismissed]);
 
     const handleUndo = useCallback(() => {
       if (swipeHistory.length > 0) {
@@ -282,6 +315,9 @@ export const CardStack = memo(
 
         // Remove last item from history
         setSwipeHistory((prev) => prev.slice(0, -1));
+
+        // Allow this card to be dismissed again
+        dismissedCards.current.delete(lastSwipe.card.id);
 
         // Restore card to stack
         dispatch({
@@ -316,6 +352,16 @@ export const CardStack = memo(
       }
     }, [items, onBookmark]);
 
+    // Expose swipe handlers to parent component for action buttons
+    useEffect(() => {
+      if (onSwipeRequest) {
+        onSwipeRequest({
+          swipeLeft: () => rateItem("left"),
+          swipeRight: () => rateItem("right"),
+        });
+      }
+    }, [onSwipeRequest, rateItem]);
+
     useEffect(() => {
       const handler = (e: KeyboardEvent) => {
         if (connectionStatus !== "connected") {
@@ -337,7 +383,7 @@ export const CardStack = memo(
       };
       window.addEventListener("keydown", handler);
       return () => window.removeEventListener("keydown", handler);
-    }, [items, handleUndo, handleBookmark]);
+    }, [connectionStatus, rateItem, handleUndo, handleBookmark]);
 
     const bind = useGesture(
       {

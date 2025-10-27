@@ -135,6 +135,38 @@ export const reducer: Reducer<Store, Actions> = (
         },
       };
     }
+    case "getLibraries": {
+      return {
+        ...state,
+        createRoom: {
+          ...state.createRoom!,
+          librariesLoading: true,
+          librariesError: undefined,
+        },
+      };
+    }
+    case "getLibrariesSuccess": {
+      return {
+        ...state,
+        createRoom: {
+          ...state.createRoom!,
+          libraries: action.payload,
+          librariesLoading: false,
+          librariesError: undefined,
+        },
+      };
+    }
+    case "getLibrariesError": {
+      return {
+        ...state,
+        createRoom: {
+          ...state.createRoom!,
+          libraries: [],
+          librariesLoading: false,
+          librariesError: action.payload.message,
+        },
+      };
+    }
     case "match": {
       return {
         ...state,

@@ -160,8 +160,8 @@ export const Application = (
 
             try {
               await req.respond(response);
-            } catch {
-              // Pass
+            } catch (err) {
+              log.error(`Error responding to request: ${err instanceof Error ? err.message : String(err)}`);
             }
 
             dfd.resolve();
