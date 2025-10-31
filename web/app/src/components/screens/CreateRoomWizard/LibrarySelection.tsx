@@ -2,7 +2,8 @@ import React, { useState, useEffect, useCallback } from "react";
 import { Button } from "../../atoms/Button";
 import { ButtonContainer } from "../../layout/ButtonContainer";
 import { Spinner } from "../../atoms/Spinner";
-import { useStore } from "../../../store";
+import { useMediaStore } from "../../../store/mediaStore";
+import { client } from "../../../store/websocket";
 import type { WizardState } from "./CreateRoomWizard";
 
 import styles from "./LibrarySelection.module.css";
@@ -20,15 +21,18 @@ export const LibrarySelection: React.FC<LibrarySelectionProps> = ({
   onNext,
   onBack,
 }) => {
-  const [{ createRoom }, dispatch] = useStore(["createRoom"]);
+  const libraries = useMediaStore((state) => state.libraries);
+  const librariesLoading = useMediaStore((state) => state.librariesLoading);
+  const librariesError = useMediaStore((state) => state.librariesError);
+
   const [selected, setSelected] = useState<Set<string>>(
     new Set(selectedLibraries)
   );
 
   useEffect(() => {
     // Fetch libraries from WebSocket when component mounts
-    dispatch({ type: "getLibraries" });
-  }, [dispatch]);
+    client.getLibraries();
+  }, []);
 
   const toggleLibrary = useCallback((key: string) => {
     setSelected((prev) => {
@@ -43,10 +47,10 @@ export const LibrarySelection: React.FC<LibrarySelectionProps> = ({
   }, []);
 
   const selectAll = useCallback(() => {
-    if (createRoom?.libraries) {
-      setSelected(new Set(createRoom.libraries.map((lib) => lib.key)));
+    if (libraries) {
+      setSelected(new Set(libraries.map((lib) => lib.key)));
     }
-  }, [createRoom?.libraries]);
+  }, [libraries]);
 
   const deselectAll = useCallback(() => {
     setSelected(new Set());
@@ -57,11 +61,7 @@ export const LibrarySelection: React.FC<LibrarySelectionProps> = ({
     onNext();
   }, [selected, onUpdate, onNext]);
 
-  const libraries = createRoom?.libraries ?? [];
-  const loading = createRoom?.librariesLoading ?? true;
-  const error = createRoom?.librariesError;
-
-  if (loading) {
+  if (librariesLoading) {
     return (
       <div className={styles.loadingContainer}>
         <Spinner />
@@ -70,10 +70,10 @@ export const LibrarySelection: React.FC<LibrarySelectionProps> = ({
     );
   }
 
-  if (error) {
+  if (librariesError) {
     return (
       <div className={styles.errorContainer}>
-        <p className={styles.errorText}>{error}</p>
+        <p className={styles.errorText}>{librariesError}</p>
         <Button appearance="Primary" onPress={onBack}>
           Go Back
         </Button>

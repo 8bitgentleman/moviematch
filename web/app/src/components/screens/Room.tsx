@@ -11,12 +11,16 @@ import { Card } from "../molecules/Card";
 import { CardStack } from "../organisms/CardStack";
 import { MatchesList } from "../organisms/MatchesList";
 import { RoomInfoBar } from "../organisms/RoomInfoBar";
+import { useRoomStore } from "../../store/roomStore";
+import { client } from "../../store/websocket";
 
 import styles from "./Room.module.css";
-import { useStore } from "../../store";
 
 export const RoomScreen = () => {
-  const [{ room }, dispatch] = useStore(["room"]);
+  const room = useRoomStore((state) => ({
+    media: state.media,
+    matches: state.matches,
+  }));
   const matchesEl = useRef<HTMLUListElement>(null);
   const [matchOrder, setMatchOrder] = useState<string>("mostRecent");
   const [media] = useState(room?.media);
@@ -30,12 +34,9 @@ export const RoomScreen = () => {
       <CardStack
         cards={media}
         onCardDismissed={(card, rating) => {
-          dispatch({
-            type: "rate",
-            payload: {
-              mediaId: card.id,
-              rating: rating === "left" ? "dislike" : "like",
-            },
+          client.rate({
+            mediaId: card.id,
+            rating: rating === "left" ? "dislike" : "like",
           });
         }}
         renderCard={(card) => <Card media={card} key={card.id} />}

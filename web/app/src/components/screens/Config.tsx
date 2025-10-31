@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { Formik } from "formik";
-import { useDispatch } from "react-redux";
 import type { Config } from "../../../../../types/moviematch";
 import { AddRemoveList } from "../atoms/AddRemoveList";
 import { Field } from "../molecules/Field";
@@ -8,12 +7,12 @@ import { Layout } from "../layout/Layout";
 import { Select } from "../atoms/Select";
 import { Button } from "../atoms/Button";
 import { ErrorMessage } from "../atoms/ErrorMessage";
-import { Dispatch, useSelector } from "../../store";
+import { useAuthStore } from "../../store/authStore";
+import { client } from "../../store/websocket";
 import styles from "./Config.module.css";
 
 export const ConfigScreen = () => {
-  const { config } = useSelector(["config"]);
-  const dispatch = useDispatch<Dispatch>();
+  const config = useAuthStore((state) => state.config);
 
   const [error] = useState("");
   return (
@@ -22,7 +21,7 @@ export const ConfigScreen = () => {
         initialValues={config?.initialConfiguration ?? {}}
         onSubmit={async (values, { setSubmitting }) => {
           setSubmitting(true);
-          dispatch({ type: "setup", payload: values as Config });
+          client.setup(values as Config);
 
           setSubmitting(false);
         }}

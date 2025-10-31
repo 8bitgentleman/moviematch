@@ -5,27 +5,31 @@ import { ButtonContainer } from "../layout/ButtonContainer";
 import { Layout } from "../layout/Layout";
 import { Tr } from "../atoms/Tr";
 import styles from "./Join.module.css";
-import { useStore } from "../../store";
+import { useRoomStore } from "../../store/roomStore";
+import { useUIStore } from "../../store/uiStore";
+import { client } from "../../store/websocket";
 import { ErrorMessage } from "../atoms/ErrorMessage";
 import { Spinner } from "../atoms/Spinner";
 
 export const JoinScreen = () => {
-  const [store, dispatch] = useStore(["room", "error"]);
+  const room = useRoomStore((state) => state.name);
+  const error = useUIStore((state) => state.error);
+  const navigate = useUIStore((state) => state.navigate);
   const [initialRoomName] = useState<string | null>(
     new URLSearchParams(location.search).get("roomName"),
   );
   const [roomName, setRoomName] = useState<string>(
-    store.room?.name ?? initialRoomName ?? "",
+    room ?? initialRoomName ?? "",
   );
   const [roomNameError] = useState<string | undefined>();
 
   useEffect(() => {
     if (initialRoomName) {
-      dispatch({ type: "joinRoom", payload: { roomName: initialRoomName } });
+      client.joinRoom({ roomName: initialRoomName });
     }
   }, [initialRoomName]);
 
-  if (initialRoomName && !store.error) {
+  if (initialRoomName && !error) {
     return <Layout>
       <Spinner />
     </Layout>;
@@ -39,9 +43,9 @@ export const JoinScreen = () => {
           e.preventDefault();
         }}
       >
-        {store.error &&
+        {error &&
           <ErrorMessage
-            message={store.error.message ?? store.error.type ?? ""}
+            message={error.message ?? error.type ?? ""}
           />}
         <Field
           label="Room Name"
@@ -54,7 +58,7 @@ export const JoinScreen = () => {
           <Button
             appearance="Tertiary"
             onPress={() => {
-              dispatch({ type: "logout" });
+              client.logout();
             }}
             testHandle="logout"
           >
@@ -63,10 +67,7 @@ export const JoinScreen = () => {
           <Button
             appearance="Secondary"
             onPress={() => {
-              dispatch({
-                type: "navigate",
-                payload: { route: "createRoom", routeParams: { roomName } },
-              });
+              navigate("createRoom", { roomName });
             }}
             testHandle="create-room"
           >
@@ -76,7 +77,7 @@ export const JoinScreen = () => {
             appearance="Primary"
             onPress={() => {
               if (roomName) {
-                dispatch({ type: "joinRoom", payload: { roomName } });
+                client.joinRoom({ roomName });
               }
             }}
             type="submit"

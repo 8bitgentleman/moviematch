@@ -1,32 +1,27 @@
-import React, { StrictMode } from "react";
+import React, { StrictMode, useEffect } from "react";
 import { createRoot } from "react-dom/client";
-import { Provider, useDispatch } from "react-redux";
 
 import "./main.css";
 
 import { AppRouter } from "./components/AppRouter";
 import { ToastList } from "./components/atoms/Toast";
-import { createStore, Dispatch, useSelector } from "./store";
+import { initializeWebSocket } from "./store/websocket";
+import { useAuthStore } from "./store/authStore";
+import { useUIStore } from "./store/uiStore";
 
-const store = createStore();
+// Initialize WebSocket connection
+initializeWebSocket();
 
 const MovieMatch = () => {
-  const { route = "loading", translations, toasts } = useSelector([
-    "route",
-    "translations",
-    "toasts",
-  ]);
-
-  const dispatch = useDispatch<Dispatch>();
+  const route = useUIStore((state) => state.route);
+  const toasts = useUIStore((state) => state.toasts);
+  const removeToast = useUIStore((state) => state.removeToast);
+  const translations = useAuthStore((state) => state.translations);
 
   return (
     <>
       <AppRouter route={route} translations={translations} />
-      <ToastList
-        toasts={toasts}
-        removeToast={(toast) =>
-          dispatch({ type: "removeToast", payload: toast })}
-      />
+      <ToastList toasts={toasts} removeToast={removeToast} />
     </>
   );
 };
@@ -37,9 +32,7 @@ if (!rootElement) throw new Error("Failed to find the root element");
 const root = createRoot(rootElement);
 root.render(
   <StrictMode>
-    <Provider store={store}>
-      <MovieMatch />
-    </Provider>
+    <MovieMatch />
   </StrictMode>
 );
 

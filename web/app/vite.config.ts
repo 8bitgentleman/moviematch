@@ -111,12 +111,12 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          vendor: ['react', 'react-dom', 'react-redux'],
+          vendor: ['react', 'react-dom', 'zustand'],
         }
       }
     }
   },
   optimizeDeps: {
-    include: ['react', 'react-dom', 'react-redux']
+    include: ['react', 'react-dom', 'zustand']
   }
 });

@@ -5,15 +5,16 @@ import { Button } from "../atoms/Button";
 import { ButtonContainer } from "../layout/ButtonContainer";
 import { Layout } from "../layout/Layout";
 import { Tr } from "../atoms/Tr";
-import { useStore } from "../../store";
+import { useAuthStore } from "../../store/authStore";
+import { useUIStore } from "../../store/uiStore";
+import { client } from "../../store/websocket";
 import { ErrorMessage } from "../atoms/ErrorMessage";
 
 export const LoginScreen = () => {
-  const [{ config, translations, error }, dispatch] = useStore([
-    "config",
-    "translations",
-    "error",
-  ]);
+  const config = useAuthStore((state) => state.config);
+  const translations = useAuthStore((state) => state.translations);
+  const error = useUIStore((state) => state.error);
+  const initPlexLogin = useAuthStore((state) => state.initPlexLogin);
   const [userName, setUserName] = useState<string | null>(
     localStorage.getItem("userName"),
   );
@@ -50,7 +51,7 @@ export const LoginScreen = () => {
                   setUserNameError(translations?.FIELD_REQUIRED_ERROR!);
                   return;
                 }
-                dispatch({ type: "login", payload: { userName } });
+                client.login({ userName });
               }}
               testHandle="login-anonymous"
             >
@@ -63,7 +64,7 @@ export const LoginScreen = () => {
             highlightColor="plex-highlight-color"
             testHandle="login-plex"
             onPress={() => {
-              dispatch({ type: "plexLogin" });
+              initPlexLogin();
             }}
           >
             <Tr name="LOGIN_SIGN_IN_PLEX" />

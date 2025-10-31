@@ -11,7 +11,7 @@ import type { Media } from "../../../../../types/moviematch";
 import { useGesture } from "react-use-gesture";
 import { animated, Controller, Spring } from "@react-spring/web";
 import { Tr } from "../atoms/Tr";
-import { useStore } from "../../store";
+import { useUIStore } from "../../store/uiStore";
 
 import styles from "./CardStack.module.css";
 const { abs, sign } = Math;
@@ -102,7 +102,7 @@ export const useFirstChildWidth = (transform?: (n: number) => number) => {
 export const CardStack = memo(
   ({ cards, renderCard, onCardDismissed, onUndo, onBookmark, onStateChange, onSwipeRequest }: CardStackProps) => {
     const vw = useViewportWidth((n) => n / 2);
-    const [{ connectionStatus }] = useStore(["connectionStatus"]);
+    const connectionStatus = useUIStore((state) => state.connectionStatus);
     const [elRef, ew] = useFirstChildWidth();
 
     // History management for undo functionality (max 10 items)

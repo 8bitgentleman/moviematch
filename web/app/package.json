@@ -14,11 +14,9 @@
     "react": "^18.3.0",
     "react-dom": "^18.3.0",
     "react-popper": "^2.0.0",
-    "react-redux": "^9.0.0",
     "react-transition-group": "^4.0.0",
     "react-use-gesture": "^9.0.0",
-    "redux": "^5.0.1",
-    "redux-devtools-extension": "^2.0.0"
+    "zustand": "^5.0.8"
   },
   "devDependencies": {
     "@testing-library/react": "^14.0.0",

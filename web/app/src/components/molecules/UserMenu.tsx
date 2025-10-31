@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { usePopper } from "react-popper";
-import { useDispatch } from "react-redux";
-import { Dispatch, useStore } from "../../store";
+import { useAuthStore } from "../../store/authStore";
+import { useRoomStore } from "../../store/roomStore";
+import { client } from "../../store/websocket";
 import { Avatar } from "../atoms/Avatar";
 import { MenuButton } from "../atoms/MenuButton";
 import { MenuGroup } from "../atoms/MenuGroup";
@@ -12,8 +13,8 @@ import { UserProgressItem } from "./UserProgressItem";
 import { ChevronDownIcon } from "../icons/ChevronDown";
 
 export const UserMenu = () => {
-  const [{ user, room }] = useStore(["user", "room"]);
-  const dispatch = useDispatch<Dispatch>();
+  const user = useAuthStore((state) => state.user);
+  const users = useRoomStore((state) => state.users);
   const [referenceEl, setReferenceEl] = useState<HTMLDivElement | null>();
   const [popperEl, setPopperEl] = useState<HTMLDivElement | null>();
   const [isOpen, setOpen] = useState(false);
@@ -60,9 +61,9 @@ export const UserMenu = () => {
 
   if (!user) return null;
 
-  const areOthersInRoom = room?.users && room?.users?.length > 1;
+  const areOthersInRoom = users && users.length > 1;
   const progress =
-    room?.users?.find((_) => _.user.userName === user.userName)?.progress ?? 0;
+    users?.find((_) => _.user.userName === user.userName)?.progress ?? 0;
 
   return (
     <>
@@ -103,7 +104,7 @@ export const UserMenu = () => {
         <MenuGroup title="Also in the room:">
           {areOthersInRoom && (
             <div className={styles.usersList}>
-              {room?.users!.map((userProgress) => {
+              {users!.map((userProgress) => {
                 if (userProgress.user.userName === user.userName) {
                   return null;
                 }
@@ -117,10 +118,10 @@ export const UserMenu = () => {
             </div>
           )}
         </MenuGroup>
-        <MenuButton onClick={() => dispatch({ type: "leaveRoom" })}>
+        <MenuButton onClick={() => client.leaveRoom()}>
           Leave Room
         </MenuButton>
-        <MenuButton onClick={() => dispatch({ type: "logout" })}>
+        <MenuButton onClick={() => client.logout()}>
           Logout
         </MenuButton>
       </Popover>

@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from "react";
-import { useStore } from "../../../store";
+import { useUIStore } from "../../../store/uiStore";
+import { client } from "../../../store/websocket";
 import { Layout } from "../../layout/Layout";
 import { ErrorMessage } from "../../atoms/ErrorMessage";
 import { RoomBasicInfo } from "./RoomBasicInfo";
@@ -29,7 +30,7 @@ export interface WizardState {
 const TOTAL_STEPS = 5;
 
 export const CreateRoomWizard = () => {
-  const [{ error }, dispatch] = useStore(["error"]);
+  const error = useUIStore((state) => state.error);
   const [wizardState, setWizardState] = useState<WizardState>({
     step: 1,
     roomName: "",
@@ -129,18 +130,15 @@ export const CreateRoomWizard = () => {
       });
     }
 
-    dispatch({
-      type: "createRoom",
-      payload: {
-        roomName: wizardState.roomName,
-        password: wizardState.password,
-        filters,
-        roomType: wizardState.roomType,
-        sortOrder: wizardState.sortOrder,
-        genreFilterMode: wizardState.genreMode,
-      },
+    client.createRoom({
+      roomName: wizardState.roomName,
+      password: wizardState.password,
+      filters,
+      roomType: wizardState.roomType,
+      sortOrder: wizardState.sortOrder,
+      genreFilterMode: wizardState.genreMode,
     });
-  }, [wizardState, dispatch]);
+  }, [wizardState]);
 
   const renderStep = () => {
     switch (wizardState.step) {

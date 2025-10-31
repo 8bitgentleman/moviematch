@@ -1,10 +1,13 @@
-import React, { useState, useCallback } from "react";
+import React, { useCallback } from "react";
 import type { Media, User } from "../../../../../types/moviematch";
 import { SwipeScreen } from "./SwipeScreen";
 import { BrowseScreen } from "./BrowseScreen";
 import { MatchesScreen } from "./MatchesScreen";
 import { SettingsScreen } from "./SettingsScreen";
-import { useStore } from "../../store";
+import { useRoomStore } from "../../store/roomStore";
+import { useAuthStore } from "../../store/authStore";
+import { useUIStore } from "../../store/uiStore";
+import { client } from "../../store/websocket";
 
 type TabType = "swipe" | "browse" | "matches" | "settings";
 
@@ -28,9 +31,17 @@ interface RoomContainerProps {
  * - User interactions (swipe, bookmark, leave room, etc.)
  */
 export const RoomContainer = ({ initialTab = "swipe" }: RoomContainerProps) => {
-  const [{ room, user }, dispatch] = useStore(["room", "user"]);
-  const [activeTab, setActiveTab] = useState<TabType>(initialTab);
-  const [_bookmarkedMedia, setBookmarkedMedia] = useState<Set<string>>(new Set());
+  // Zustand store selectors
+  const room = useRoomStore((state) => ({
+    name: state.name,
+    media: state.media,
+    matches: state.matches,
+    users: state.users,
+  }));
+  const user = useAuthStore((state) => state.user);
+  const activeTab = useUIStore((state) => state.activeTab);
+  const setActiveTab = useUIStore((state) => state.setActiveTab);
+  const toggleBookmark = useRoomStore((state) => state.toggleBookmark);
 
   // Ensure we have room data
   if (!room || !room.media || !user) {
@@ -46,44 +57,33 @@ export const RoomContainer = ({ initialTab = "swipe" }: RoomContainerProps) => {
   // Tab change handler
   const handleTabChange = useCallback((tab: TabType) => {
     setActiveTab(tab);
-  }, []);
+  }, [setActiveTab]);
 
-  // Swipe action handler - sends rate message to server
+  // Swipe action handler - sends rate message to server via WebSocket
   const handleSwipe = useCallback(
     (mediaId: string, action: "like" | "dislike") => {
-      dispatch({
-        type: "rate",
-        payload: {
-          mediaId,
-          rating: action,
-        },
+      client.rate({
+        mediaId,
+        rating: action,
       });
     },
-    [dispatch]
+    []
   );
 
-  // Bookmark handler - stores locally for now
+  // Bookmark handler - updates Zustand store
   const handleBookmark = useCallback((mediaItem: Media) => {
-    setBookmarkedMedia((prev) => {
-      const next = new Set(prev);
-      if (next.has(mediaItem.id)) {
-        next.delete(mediaItem.id);
-      } else {
-        next.add(mediaItem.id);
-      }
-      return next;
-    });
+    toggleBookmark(mediaItem.id);
+  }, [toggleBookmark]);
+
+  // Leave room handler - uses WebSocket client
+  const handleLeaveRoom = useCallback(() => {
+    client.leaveRoom();
   }, []);
 
-  // Leave room handler
-  const handleLeaveRoom = useCallback(() => {
-    dispatch({ type: "leaveRoom" });
-  }, [dispatch]);
-
-  // Logout handler
+  // Logout handler - uses WebSocket client
   const handleLogout = useCallback(() => {
-    dispatch({ type: "logout" });
-  }, [dispatch]);
+    client.logout();
+  }, []);
 
   // Common props passed to all screens
   const commonProps = {

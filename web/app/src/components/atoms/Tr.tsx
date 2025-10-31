@@ -1,5 +1,5 @@
 import React, { memo } from "react";
-import { useStore } from "../../store";
+import { useAuthStore } from "../../store/authStore";
 import type { TranslationKey } from "../../../../../types/moviematch";
 
 interface TranslationProps {
@@ -20,7 +20,7 @@ const interpolate = (text: string, context: Record<string, string>) => {
 };
 
 export const Tr = memo(({ name, context }: TranslationProps) => {
-  const [{ translations }] = useStore(["translations"]);
+  const translations = useAuthStore((state) => state.translations);
   const translation = (translations ?? {})[name];
 
   if (translation && context) {
